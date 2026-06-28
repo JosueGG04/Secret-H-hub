@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+
+# SQLite database
+*.db
+*.sqlite3
+
+# Flask
+instance/
+
+# Alembic (keep migrations/, ignore compiled)
+migrations/__pycache__/
+migrations/versions/__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
