@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div id="summary-strip"
+     hx-get="{{ url_for('summary') }}"
+     hx-trigger="gameLogged from:body"
+     hx-swap="outerHTML">
+  {% include "partials/_summary.html" %}
+</div>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Standings</h2>
+    <span class="count">Ranked by win rate</span>
+  </div>
+  <div id="leaderboard"
+       hx-get="{{ url_for('leaderboard') }}"
+       hx-trigger="gameLogged from:body"
+       hx-swap="innerHTML">
+    {% include "partials/_leaderboard.html" %}
+  </div>
+</section>
+
+{% if is_admin %}
+<section class="log-panel">
+  <div class="section-head">
+    <h2>Record a Game</h2>
+    <span class="count">htmx · no reload</span>
+  </div>
+  <div id="log-slot">
+    {% include "partials/_game_form.html" %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-head">
+    <h2>The Chronicle</h2>
+    <span class="count">Most recent first</span>
+  </div>
+  <div id="game-list"
+       hx-get="{{ url_for('games_list') }}"
+       hx-trigger="gameLogged from:body"
+       hx-swap="innerHTML">
+    {% include "partials/_games.html" %}
+  </div>
+</section>
+
+{% endblock %}

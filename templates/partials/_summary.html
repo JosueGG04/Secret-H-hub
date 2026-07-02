@@ -1,0 +1,29 @@
+<div class="summary-strip" id="summary-strip">
+  <div class="cell">
+    <div class="n">{{ summary.total_games }}</div>
+    <div class="l">Games Played</div>
+  </div>
+  <div class="cell">
+    <div class="n">{{ summary.total_players }}</div>
+    <div class="l">Players</div>
+  </div>
+  <div class="cell">
+    <div class="n">{{ summary.liberal_wins }}</div>
+    <div class="l">Liberal Wins</div>
+  </div>
+  <div class="cell">
+    <div class="n red">{{ summary.fascist_wins }}</div>
+    <div class="l">Fascist Wins</div>
+  </div>
+</div>
+
+<div class="balance">
+  <div class="bar">
+    <div class="lib" style="width: {{ summary.liberal_pct }}%"></div>
+    <div class="fas" style="width: {{ summary.fascist_pct }}%"></div>
+  </div>
+  <div class="legend">
+    <span>Liberal &nbsp;{{ '%.0f' | format(summary.liberal_pct) }}%</span>
+    <span>{{ '%.0f' | format(summary.fascist_pct) }}%&nbsp; Fascist</span>
+  </div>
+</div>

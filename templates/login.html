@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Admin Sign-in — Secret Hitler Records{% endblock %}
+{% block body %}
+
+<section class="log-panel" style="margin: 0;">
+  <div class="section-head">
+    <h2>Admin Sign-in</h2>
+    <span class="count">Restricted</span>
+  </div>
+
+  <p class="hint" style="margin-bottom: 18px;">
+    Only the admin can record games, add players, or delete records.
+    Everyone else sees the standings and chronicle read-only.
+  </p>
+
+  {% if error %}
+  <div class="notice err">✕ {{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+    <div class="field">
+      <label for="username">Username</label>
+      <input class="input" type="text" id="username" name="username" autocomplete="username" autofocus>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input class="input" type="password" id="password" name="password" autocomplete="current-password">
+    </div>
+    <button class="btn block" type="submit">Sign in</button>
+  </form>
+
+  <p style="text-align:center; margin-top:16px;">
+    <a class="admin-link" href="{{ url_for('index') }}" style="color:var(--gold-2)">‹ Back to standings</a>
+  </p>
+</section>
+
+{% endblock %}

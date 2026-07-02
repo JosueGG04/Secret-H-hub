@@ -1,0 +1,14 @@
+<div class="roster-picker">
+  {% for p in players %}
+  <label class="pick" for="pick-{{ p.id }}">
+    <input type="checkbox" id="pick-{{ p.id }}" name="include" value="{{ p.id }}"
+           onchange="this.closest('.pick').classList.toggle('on', this.checked)">
+    <span class="who">{{ p.name }}</span>
+    <select name="role_{{ p.id }}" aria-label="Role for {{ p.name }}">
+      <option value="Liberal">Liberal</option>
+      <option value="Fascist">Fascist</option>
+      <option value="Hitler">Hitler</option>
+    </select>
+  </label>
+  {% endfor %}
+</div>

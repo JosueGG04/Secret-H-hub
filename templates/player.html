@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ d.player.name }} — Secret Hitler Records{% endblock %}
+{% block body %}
+
+<section class="section">
+  <a class="backlink" href="{{ url_for('index') }}">‹ Back to standings</a>
+  <div class="section-head">
+    <h2>{{ d.player.name }}</h2>
+    <span class="count">Career record</span>
+  </div>
+
+  <div class="pstat-grid">
+    <div class="pstat"><div class="n">{{ d.games }}</div><div class="l">Games</div></div>
+    <div class="pstat"><div class="n">{{ d.wins }}</div><div class="l">Wins</div></div>
+    <div class="pstat"><div class="n red">{{ d.losses }}</div><div class="l">Losses</div></div>
+    <div class="pstat"><div class="n">{{ '%.0f' | format(d.win_rate * 100) }}%</div><div class="l">Win Rate</div></div>
+  </div>
+
+  <div class="role-cards">
+    {% set roles = [('Liberal','lib'), ('Fascist','fas'), ('Hitler','hitler')] %}
+    {% for role, cls in roles %}
+    {% set b = d.by_role[role] %}
+    <div class="role-card {{ cls }}">
+      <h4>As {{ role }}</h4>
+      <div class="big">{{ '%.0f' | format(b.rate * 100) }}%</div>
+      <div class="small">{{ b.wins }} won of {{ b.games }} played</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="section-head">
+    <h2>Appearances</h2>
+    <span class="count">{{ d.games }} game{{ '' if d.games == 1 else 's' }}</span>
+  </div>
+
+  {% if d.history %}
+    {% for h in d.history %}
+    <div class="game {{ 'win-lib' if h.winning_faction == 'Liberal' else 'win-fas' }}">
+      <div class="game-top">
+        <div>
+          <div class="game-date">{{ h.played_on }} · {{ h.num_players }} players</div>
+          <div class="game-cond">{{ h.condition_label }}</div>
+        </div>
+        <div class="game-meta">
+          <span class="pill {{ 'hitler' if h.role == 'Hitler' else ('fas' if h.role == 'Fascist' else 'lib') }}">{{ h.role }}</span>
+          <span class="tag-win {{ 'lib' if h.won else 'fas' }}">{{ 'Won' if h.won else 'Lost' }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:var(--ink-soft)">No games recorded for {{ d.player.name }} yet.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

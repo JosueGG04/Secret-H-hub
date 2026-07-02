@@ -1,0 +1,49 @@
+{% if board and board[0].games %}
+<table class="board">
+  <thead>
+    <tr>
+      <th class="rankcell">Rank</th>
+      <th>Player</th>
+      <th class="num">Record</th>
+      <th class="num">Win Rate</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in board %}
+    <tr class="{{ '' if p.ranked else 'unranked' }}">
+      <td class="rankcell num">
+        {% if p.rank == 1 %}<span class="medal g1"><span>I</span></span>
+        {% elif p.rank == 2 %}<span class="medal g2"><span>II</span></span>
+        {% elif p.rank == 3 %}<span class="medal g3"><span>III</span></span>
+        {% elif p.rank %}<span class="medal"><span>{{ p.rank }}</span></span>
+        {% else %}<span class="medal none"><span>–</span></span>
+        {% endif %}
+      </td>
+      <td>
+        <a class="pname" href="{{ url_for('player_page', player_id=p.id) }}">{{ p.name }}</a>
+        <div class="rolemix">
+          {% if p.games %}
+            {{ p.lib_games }} Lib · {{ p.fas_games }} Fas · {{ p.hitler_games }} Hitler
+          {% else %}
+            No games yet
+          {% endif %}
+        </div>
+      </td>
+      <td class="num">
+        {% if p.games %}
+        <span class="record"><span class="w">{{ p.wins }}</span><span class="sep">–</span><span class="l">{{ p.losses }}</span></span>
+        {% else %}<span class="record" style="color:var(--ink-soft)">—</span>{% endif %}
+      </td>
+      <td class="num">
+        {% if p.games %}
+        <span class="wr">{{ '%.0f' | format(p.win_rate * 100) }}%</span>
+        <div class="wrbar"><i style="width: {{ p.win_rate * 100 }}%"></i></div>
+        {% else %}<span class="wr" style="color:var(--ink-soft)">—</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="color:var(--ink-soft)">No games recorded yet. Log your first game below to start the standings.</p>
+{% endif %}

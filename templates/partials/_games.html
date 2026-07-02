@@ -1,0 +1,35 @@
+{% if games %}
+  {% for g in games %}
+  <div class="game {{ 'win-lib' if g.winning_faction == 'Liberal' else 'win-fas' }}" id="game-{{ g.id }}">
+    <div class="game-top">
+      <div>
+        <div class="game-date">{{ g.played_on }} · {{ g.num_players }} players</div>
+        <div class="game-cond">{{ g.condition_label }}</div>
+      </div>
+      <div class="game-meta">
+        <span class="tag-win {{ 'lib' if g.winning_faction == 'Liberal' else 'fas' }}">
+          {{ g.winning_faction }} Victory
+        </span>
+        {% if is_admin %}
+        <button class="iconbtn"
+                hx-delete="{{ url_for('delete_game', game_id=g.id) }}"
+                hx-target="#game-{{ g.id }}"
+                hx-swap="outerHTML swap:0.2s"
+                hx-confirm="Delete this game? Standings will update.">Delete</button>
+        {% endif %}
+      </div>
+    </div>
+    <div class="roster">
+      {% for r in g.roster %}
+      <span class="chip {{ 'won' if r.won else '' }}">
+        <span class="dot {{ 'hitler' if r.role == 'Hitler' else ('fas' if r.role == 'Fascist' else 'lib') }}"></span>
+        <span class="nm">{{ r.name }}</span>
+        <span class="pill {{ 'hitler' if r.role == 'Hitler' else ('fas' if r.role == 'Fascist' else 'lib') }}">{{ r.role }}</span>
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+<p style="color:var(--ink-soft)">The chronicle is empty. Recorded games will appear here.</p>
+{% endif %}

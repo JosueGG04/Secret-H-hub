@@ -1,0 +1,57 @@
+<form hx-post="{{ url_for('create_game_route') }}"
+      hx-target="#log-slot"
+      hx-swap="innerHTML">
+
+  <div class="row2">
+    <div class="field">
+      <label for="played_on">Date Played</label>
+      <input class="input" type="date" id="played_on" name="played_on" value="{{ today }}">
+    </div>
+    <div class="field">
+      <label for="win_condition">Outcome / Win Condition</label>
+      <select class="input" id="win_condition" name="win_condition" required>
+        <option value="" disabled selected>How did it end?</option>
+        {% for key, wc in win_conditions.items() %}
+        <option value="{{ key }}">{{ wc.label }} — {{ wc.faction }} win</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label for="liberal_policies">Liberal Policies (optional)</label>
+      <input class="input" type="number" min="0" max="5" id="liberal_policies" name="liberal_policies" placeholder="0–5">
+    </div>
+    <div class="field">
+      <label for="fascist_policies">Fascist Policies (optional)</label>
+      <input class="input" type="number" min="0" max="6" id="fascist_policies" name="fascist_policies" placeholder="0–6">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Who Played &amp; Their Role</label>
+    <div id="roster-picker">
+      {% include "partials/_roster_picker.html" %}
+    </div>
+    <p class="hint">Tick everyone who played, then set each role. Exactly one Hitler; 5–10 players total.</p>
+  </div>
+
+  <div class="field">
+    <label for="notes">Notes (optional)</label>
+    <input class="input" type="text" id="notes" name="notes" placeholder="Memorable moments, blowout, clutch shot…">
+  </div>
+
+  <button class="btn block" type="submit">
+    Record This Game <span class="htmx-indicator">·</span>
+  </button>
+</form>
+
+<form class="addplayer"
+      hx-post="{{ url_for('add_player') }}"
+      hx-target="#roster-picker"
+      hx-swap="innerHTML"
+      hx-on::after-request="this.reset()">
+  <input class="input" type="text" name="name" placeholder="Add a new player…" autocomplete="off">
+  <button class="btn ghost" type="submit">Add</button>
+</form>
