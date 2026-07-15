@@ -203,17 +203,21 @@ def leaderboard_rows(min_games=1):
         d["ranked"] = d["games"] >= min_games
         result.append(d)
 
-    # Ranked players first (by win rate, then games, then name); unranked after.
+    # Ranked players first (by wins, then win rate, then games, then name); unranked after.
     result.sort(key=lambda d: (
         not d["ranked"],
+        -d["wins"],
         -d["win_rate"],
         -d["games"],
         d["name"].lower(),
     ))
     rank = 0
-    for d in result:
+    prev_wins = None
+    for i, d in enumerate(result):
         if d["ranked"]:
-            rank += 1
+            if d["wins"] != prev_wins:
+                rank = i + 1
+                prev_wins = d["wins"]
             d["rank"] = rank
         else:
             d["rank"] = None
