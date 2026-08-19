@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Secret Hitler Records{% endblock %}
+{% block body %}
+
+{% include "partials/_summary.html" %}
+
+<section class="section">
+  <div class="section-head">
+    <h2>The Shape of the Game</h2>
+    <span class="count">{{ shape.total_games }} game{{ '' if shape.total_games == 1 else 's' }} on record</span>
+  </div>
+
+  {% if shape.total_games %}
+  <div class="dash-grid">
+
+    <div class="panel">
+      <h3 class="panel-head">How Games End</h3>
+      <div class="hbar-chart">
+        {% for c in shape.conditions %}
+        <div class="hbar">
+          <div class="hbar-head">
+            <span class="hbar-label">{{ c.label }}</span>
+            <span class="hbar-val">{{ c.count }}</span>
+          </div>
+          <div class="hbar-track">
+            <i class="{{ 'lib' if c.faction == 'Liberal' else 'fas' }}"
+               style="width: {{ (c.count / shape.most * 100) if shape.most else 0 }}%"></i>
+            <span class="tip">{{ '%.0f' | format(c.pct) }}% of all games · {{ c.faction }} victory</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="chart-legend">
+        <span><i class="key lib"></i>Liberal victory</span>
+        <span><i class="key fas"></i>Fascist victory</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="panel-head">By Table Size</h3>
+      <div class="split-chart">
+        {% for s in shape.by_size %}
+        <div class="split-row">
+          <div class="split-head">
+            <span class="split-name">{{ s.n }} players</span>
+            <span class="split-n">{{ s.games }} game{{ '' if s.games == 1 else 's' }}</span>
+          </div>
+          <div class="split-bar">
+            {% if s.lib %}<i class="lib" style="width: {{ s.lib_pct }}%"></i>{% endif %}
+            {% if s.fas %}<i class="fas" style="width: {{ s.fas_pct }}%"></i>{% endif %}
+            <span class="tip">{{ '%.0f' | format(s.lib_pct) }}% Liberal ·
+                              {{ '%.0f' | format(s.fas_pct) }}% Fascist</span>
+          </div>
+          <div class="split-foot">{{ s.lib }} Liberal · {{ s.fas }} Fascist</div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="chart-legend">
+        <span><i class="key lib"></i>Liberal wins</span>
+        <span><i class="key fas"></i>Fascist wins</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="panel wide">
+    <h3 class="panel-head">Game Nights</h3>
+    <div class="nights">
+      {% for n in shape.nights %}
+      <div class="night">
+        <div class="col-slot">
+          <i style="height: {{ (n.games / shape.busiest * 100) if shape.busiest else 0 }}%"></i>
+          {% if loop.index0 == shape.peak %}<span class="cap">{{ n.games }}</span>{% endif %}
+          <span class="tip">{{ n.label }} · {{ n.games }} game{{ '' if n.games == 1 else 's' }}
+                            ({{ n.lib }} Lib · {{ n.fas }} Fas)</span>
+        </div>
+        <div class="night-label"><span class="mo">{{ n.month }}</span>{{ n.day }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="chart-note">{{ shape.nights | length }} night{{ '' if shape.nights | length == 1 else 's' }}
+      at the table, earliest first.</p>
+  </div>
+  {% else %}
+  <p style="color:var(--ink-soft)">No games recorded yet. The shape of the game appears once the first game is logged.</p>
+  {% endif %}
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Hall of Fame</h2>
+    <span class="count">Minimum three games in a role</span>
+  </div>
+
+  {% if awards %}
+  <div class="award-grid">
+    {% for a in awards %}
+    <div class="award">
+      <div class="award-label">{{ a.label }}</div>
+      <div class="award-value">{{ a.value }}</div>
+      <a class="award-name" href="{{ url_for('player_page', player_id=a.player_id) }}">{{ a.name }}</a>
+      <div class="award-detail">{{ a.detail }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:var(--ink-soft)">Not enough games yet to hand out honours.</p>
+  {% endif %}
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Allies &amp; Rivals</h2>
+    <span class="count">{{ pairs.min_together }}+ games shared</span>
+  </div>
+
+  {% if pairs.duos or pairs.rivals %}
+  <div class="dash-grid">
+
+    <div class="panel">
+      <h3 class="panel-head">Best Duos</h3>
+      {% if pairs.duos %}
+      <table class="board pairs">
+        <thead>
+          <tr><th>Pair</th><th class="num">Together</th><th class="num">Win Rate</th></tr>
+        </thead>
+        <tbody>
+          {% for d in pairs.duos %}
+          <tr>
+            <td>
+              <a class="pname" href="{{ url_for('player_page', player_id=d.id1) }}">{{ d.n1 }}</a>
+              <span class="amp">&amp;</span>
+              <a class="pname" href="{{ url_for('player_page', player_id=d.id2) }}">{{ d.n2 }}</a>
+              <div class="rolemix">Same faction</div>
+            </td>
+            <td class="num">
+              <span class="record"><span class="w">{{ d.wins }}</span><span class="sep">–</span><span class="l">{{ d.losses }}</span></span>
+              <div class="rolemix">{{ d.games }} games</div>
+            </td>
+            <td class="num">
+              <span class="wr">{{ '%.0f' | format(d.rate * 100) }}%</span>
+              <div class="wrbar"><i style="width: {{ d.rate * 100 }}%"></i></div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color:var(--ink-soft)">No pair has shared a faction {{ pairs.min_together }} times yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="panel">
+      <h3 class="panel-head">Rivalries</h3>
+      {% if pairs.rivals %}
+      <table class="board pairs">
+        <thead>
+          <tr><th>Feud</th><th class="num">Opposed</th><th class="num">Verdict</th></tr>
+        </thead>
+        <tbody>
+          {% for d in pairs.rivals %}
+          <tr>
+            <td>
+              <a class="pname" href="{{ url_for('player_page', player_id=d.id1) }}">{{ d.n1 }}</a>
+              <span class="amp">vs</span>
+              <a class="pname" href="{{ url_for('player_page', player_id=d.id2) }}">{{ d.n2 }}</a>
+              <div class="rolemix">Opposite factions</div>
+            </td>
+            <td class="num">
+              <span class="record"><span class="w">{{ d.w1 }}</span><span class="sep">–</span><span class="l">{{ d.w2 }}</span></span>
+              <div class="rolemix">{{ d.games }} games</div>
+            </td>
+            <td class="num">
+              {% if d.edge %}
+              <span class="wr">+{{ d.edge }}</span>
+              <div class="rolemix">{{ d.n1 }} leads</div>
+              {% else %}
+              <span class="wr" style="color:var(--ink-soft)">Even</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color:var(--ink-soft)">No pair has faced off {{ pairs.min_together }} times yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+  {% else %}
+  <p style="color:var(--ink-soft)">Allies and rivals appear once players have shared {{ pairs.min_together }} games.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

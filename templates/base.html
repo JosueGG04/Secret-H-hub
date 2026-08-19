@@ -24,6 +24,13 @@
         <h1><a href="{{ url_for('index') }}" style="color:inherit">Secret Hitler</a></h1>
         <div class="rule"><span class="dot"></span></div>
         <p class="sub">Leaderboard &amp; Chronicle</p>
+        <nav class="deconav">
+          <a href="{{ url_for('index') }}"
+             class="{{ 'on' if request.endpoint == 'index' }}">Standings</a>
+          <span class="sep">◆</span>
+          <a href="{{ url_for('dashboard') }}"
+             class="{{ 'on' if request.endpoint == 'dashboard' }}">Dashboard</a>
+        </nav>
       </header>
       {% block body %}{% endblock %}
       <div class="footer">Enact wisely · Trust no one</div>

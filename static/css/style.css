@@ -17,6 +17,9 @@
   --gold-line:  #c6a45a;
   --liberal:    #2f3b3f;   /* deep slate — the "steady" faction */
   --fascist:    #9a1b1b;   /* oxblood */
+  /* Chart fills only. --liberal against --fascist separates by just ΔE 6.4 under
+     protanopia; this lifted slate gets to 11.8 without leaving the palette. */
+  --liberal-fill: #2f5d66;
   --shadow:     rgba(26, 21, 18, 0.22);
 
   --font-display: 'Limelight', 'Cinzel', serif;
@@ -159,6 +162,26 @@ a:hover { color: var(--oxblood-2); }
   opacity: 0.8;
 }
 .rule .dot { width: 7px; height: 7px; background: currentColor; transform: rotate(45deg); }
+
+.deconav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.deconav a {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 11px;
+  color: var(--ink-soft);
+  padding-bottom: 3px;
+  border-bottom: 1px solid transparent;
+}
+.deconav a:hover { color: var(--oxblood); }
+.deconav a.on { color: var(--cream); border-bottom-color: var(--gold-line); }
+.deconav .sep { color: var(--gold); font-size: 8px; }
 
 /* ---- Nav / summary strip ------------------------------------------------- */
 
@@ -531,6 +554,240 @@ a:hover { color: var(--oxblood-2); }
   font-size: 11px; display: inline-block; margin-bottom: 4px;
 }
 
+/* ---- Dashboard ----------------------------------------------------------- */
+
+/* Charts here are hand-rolled divs. Two rules hold them together:
+   marks carry the faction colour, text never does; and touching fills are
+   separated by a 2px gap in the surface colour, never by a border. */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.panel {
+  border: 1px solid var(--gold-line);
+  background: var(--paper);
+  padding: 18px 16px 16px;
+}
+.panel.wide { margin-bottom: 4px; }
+.panel-head {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(198,164,90,0.55);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+.chart-legend span { display: flex; align-items: center; gap: 7px; }
+.chart-legend .key {
+  width: 9px; height: 9px;
+  transform: rotate(45deg);
+  flex: none;
+}
+.chart-legend .key.lib { background: var(--liberal-fill); }
+.chart-legend .key.fas { background: var(--fascist); }
+
+.chart-note {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 14px 0 0;
+}
+
+/* hover tooltip — the charts have no JS, so this is pure CSS */
+.hbar-track, .split-bar, .col-slot { position: relative; }
+.tip {
+  position: absolute;
+  left: 50%; bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  z-index: 5;
+  white-space: nowrap;
+  padding: 6px 10px;
+  background: var(--ink);
+  color: var(--cream);
+  border: 1px solid var(--gold-line);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s;
+}
+.hbar:hover .tip, .split-row:hover .tip, .night:hover .tip { opacity: 1; }
+
+/* Horizontal bars — how games end */
+.hbar-chart { display: flex; flex-direction: column; gap: 16px; }
+.hbar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.hbar-label {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.hbar-track {
+  height: 18px;
+  background: rgba(26,21,18,0.05);
+}
+.hbar-track > i {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 4px 4px 0;   /* rounded data-end, square at the baseline */
+}
+.hbar-track > i.lib { background: var(--liberal-fill); }
+.hbar-track > i.fas {
+  background: var(--fascist);
+  background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.14) 0 6px, transparent 6px 12px);
+}
+.hbar-val {
+  font-family: var(--font-head);
+  font-size: 18px;
+  color: var(--ink);
+  flex: none;
+}
+
+/* Stacked split — faction share by table size */
+.split-chart { display: flex; flex-direction: column; gap: 18px; }
+.split-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.split-name { font-family: var(--font-head); font-size: 15px; color: var(--ink); }
+.split-n {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+.split-bar {
+  height: 18px;
+  display: flex;
+  gap: 2px;                     /* the surface gap does the separating */
+  background: var(--paper);
+}
+.split-bar > i { display: block; height: 100%; min-width: 3px; }
+.split-bar > i:last-child { border-radius: 0 4px 4px 0; }
+.split-bar > i.lib { background: var(--liberal-fill); }
+.split-bar > i.fas {
+  background: var(--fascist);
+  background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.14) 0 6px, transparent 6px 12px);
+}
+.split-foot {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 10px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+
+/* Columns — games per night */
+.nights {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding-top: 18px;   /* headroom for the peak label and the tooltips */
+}
+.night { flex: 1 1 0; min-width: 0; }
+.col-slot {
+  height: 92px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-bottom: 1px solid rgba(198,164,90,0.55);
+}
+.col-slot > i {
+  display: block;
+  width: 100%;
+  max-width: 24px;
+  min-height: 3px;
+  background: var(--gold);
+  border-radius: 4px 4px 0 0;
+}
+.col-slot .cap {
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-head);
+  font-size: 12px;
+  color: var(--ink);
+  pointer-events: none;
+}
+.night-label {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 9px;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 7px;
+  white-space: nowrap;
+}
+.night-label .mo { margin-right: 3px; }
+
+/* Hall of fame tiles */
+.award-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.award {
+  border: 1px solid var(--gold-line);
+  background: var(--paper);
+  padding: 16px 14px;
+  text-align: center;
+}
+.award-label {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 10px;
+  color: var(--gold);
+}
+.award-value {
+  font-family: var(--font-head);
+  font-size: 32px;
+  line-height: 1.1;
+  color: var(--ink);
+  margin: 8px 0 4px;
+}
+.award-name { font-size: 17px; font-weight: 600; color: var(--ink); }
+.award-name:hover { color: var(--oxblood); }
+.award-detail { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+/* Pair tables lean on .board */
+.board.pairs td { padding: 10px 8px; }
+.board.pairs .amp {
+  font-family: var(--font-head);
+  color: var(--ink-soft);
+  margin: 0 5px;
+  font-size: 13px;
+}
+
 /* ---- Footer -------------------------------------------------------------- */
 .footer {
   text-align: center; padding: 20px; margin-top: 6px;
@@ -560,4 +817,12 @@ a:hover { color: var(--oxblood-2); }
   .board td.num { text-align: left; }
   .wrbar { margin-left: 0; }
   .rankcell { width: auto; }
+
+  .dash-grid { grid-template-columns: 1fr; }
+  .award-grid { grid-template-columns: repeat(2, 1fr); }
+  .hbar-label { font-size: 13px; }
+  .nights { gap: 4px; }
+  .night-label .mo { display: none; }   /* "Jul 3" -> "3" once columns get tight */
+  .deconav { gap: 10px; }
+  .deconav a { letter-spacing: 0.14em; }
 }
