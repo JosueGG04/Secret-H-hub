@@ -11,14 +11,9 @@
 <section class="section">
   <div class="section-head">
     <h2>Standings</h2>
-    <span class="count">Ranked by win rate</span>
+    <span class="count">Ranked by wins</span>
   </div>
-  <div id="leaderboard"
-       hx-get="{{ url_for('leaderboard') }}"
-       hx-trigger="gameLogged from:body"
-       hx-swap="innerHTML">
-    {% include "partials/_leaderboard.html" %}
-  </div>
+  {% include "partials/_leaderboard.html" %}
 </section>
 
 {% if is_admin %}

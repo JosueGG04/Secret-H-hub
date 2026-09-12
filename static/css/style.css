@@ -271,6 +271,35 @@ a:hover { color: var(--oxblood-2); }
 
 /* ---- Leaderboard --------------------------------------------------------- */
 
+.month-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 2px;
+  overflow-x: auto;                 /* many months scroll rather than wrap */
+  scrollbar-width: none;
+}
+.month-tabs::-webkit-scrollbar { display: none; }
+.month-tab {
+  font: inherit;
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 10px;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  background: var(--cream-2);
+  border: 1px solid var(--gold-line);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.month-tab:hover { color: var(--oxblood); border-color: var(--oxblood); }
+.month-tab.on {
+  background: var(--oxblood);
+  border-color: var(--oxblood);
+  color: var(--cream);
+}
+
 .board { width: 100%; border-collapse: collapse; }
 .board thead th {
   font-family: var(--font-head);
@@ -825,4 +854,6 @@ a:hover { color: var(--oxblood-2); }
   .night-label .mo { display: none; }   /* "Jul 3" -> "3" once columns get tight */
   .deconav { gap: 10px; }
   .deconav a { letter-spacing: 0.14em; }
+  .month-tabs { gap: 6px; }
+  .month-tab { letter-spacing: 0.12em; padding: 6px 9px; }
 }

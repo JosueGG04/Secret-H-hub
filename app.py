@@ -12,6 +12,7 @@ Delete tracker.db to start over.
 """
 
 import os
+import re
 import sqlite3
 import itertools
 from functools import wraps
@@ -180,7 +181,8 @@ def all_players():
     return get_db().execute("SELECT * FROM players ORDER BY name COLLATE NOCASE").fetchall()
 
 
-def leaderboard_rows(min_games=1):
+def leaderboard_rows(min_games=1, month=None):
+    """Standings rows. Pass month as 'YYYY-MM' to score only that month's games."""
     db = get_db()
     rows = db.execute(
         """
@@ -191,14 +193,24 @@ def leaderboard_rows(min_games=1):
                COALESCE(SUM(CASE WHEN gp.role='Fascist' THEN 1 ELSE 0 END), 0) AS fas_games,
                COALESCE(SUM(CASE WHEN gp.role='Hitler'  THEN 1 ELSE 0 END), 0) AS hitler_games
         FROM players p
-        LEFT JOIN game_players gp ON gp.player_id = p.id
+        LEFT JOIN (
+            -- The month predicate lives here, not in the ON clause: filtering the
+            -- join would still leave other months' rows for COUNT/SUM to see.
+            SELECT gp.id, gp.player_id, gp.role, gp.won
+            FROM game_players gp
+            JOIN games g ON g.id = gp.game_id
+            WHERE ? IS NULL OR substr(g.played_on, 1, 7) = ?
+        ) gp ON gp.player_id = p.id
         GROUP BY p.id
-        """
+        """,
+        (month, month),
     ).fetchall()
 
     result = []
     for r in rows:
         d = dict(r)
+        if month and not d["games"]:
+            continue          # a monthly board lists only that month's participants
         d["losses"] = d["games"] - d["wins"]
         d["win_rate"] = (d["wins"] / d["games"]) if d["games"] else 0.0
         d["ranked"] = d["games"] >= min_games
@@ -294,6 +306,36 @@ def player_detail(player_id):
         "win_rate": (wins / games) if games else 0.0,
         "by_role": {role: bucket(role) for role in ROLES},
         "history": history,
+    }
+
+
+MONTH_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+
+
+def month_label(month):
+    """'2026-07' -> 'July 2026'. Falls back to the raw string if unparseable."""
+    try:
+        return datetime.strptime(month + "-01", "%Y-%m-%d").strftime("%B %Y")
+    except ValueError:
+        return month
+
+
+def available_months(limit=12):
+    """Months that have games, newest first, capped so the chip row stays bounded."""
+    rows = get_db().execute(
+        "SELECT DISTINCT substr(played_on, 1, 7) AS m FROM games ORDER BY m DESC LIMIT ?",
+        (limit,),
+    ).fetchall()
+    return [{"value": r["m"], "label": month_label(r["m"])} for r in rows]
+
+
+def leaderboard_context(month=None):
+    """Everything _leaderboard.html needs, so index() and leaderboard() can't drift."""
+    return {
+        "board": leaderboard_rows(month=month),
+        "month": month,
+        "month_label": month_label(month) if month else None,
+        "months": available_months(),
     }
 
 
@@ -520,19 +562,22 @@ def trigger(resp, event):
 def index():
     return render_template(
         "index.html",
-        board=leaderboard_rows(),
         games=game_detail_rows(),
         players=all_players(),
         summary=summary_stats(),
         win_conditions=WIN_CONDITIONS,
         today=date.today().isoformat(),
         fascist_count=fascist_count,
+        **leaderboard_context(),
     )
 
 
 @app.route("/leaderboard")
 def leaderboard():
-    return render_template("partials/_leaderboard.html", board=leaderboard_rows())
+    month = request.args.get("month") or None
+    if month and not MONTH_RE.match(month):
+        month = None          # malformed input falls back to the all-time board
+    return render_template("partials/_leaderboard.html", **leaderboard_context(month))
 
 
 @app.route("/games/list")

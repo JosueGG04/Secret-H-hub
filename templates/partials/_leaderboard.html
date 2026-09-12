@@ -1,3 +1,21 @@
+<div id="leaderboard"
+     hx-get="{{ url_for('leaderboard', month=month) }}"
+     hx-trigger="gameLogged from:body"
+     hx-swap="outerHTML">
+
+  {% if months %}
+  <div class="month-tabs">
+    <button type="button" class="month-tab {{ 'on' if not month }}"
+            hx-get="{{ url_for('leaderboard') }}"
+            hx-target="#leaderboard" hx-swap="outerHTML">All time</button>
+    {% for m in months %}
+    <button type="button" class="month-tab {{ 'on' if month == m.value }}"
+            hx-get="{{ url_for('leaderboard', month=m.value) }}"
+            hx-target="#leaderboard" hx-swap="outerHTML">{{ m.label }}</button>
+    {% endfor %}
+  </div>
+  {% endif %}
+
 {% if board and board[0].games %}
 <table class="board">
   <thead>
@@ -45,5 +63,9 @@
   </tbody>
 </table>
 {% else %}
-<p style="color:var(--ink-soft)">No games recorded yet. Log your first game below to start the standings.</p>
+<p style="color:var(--ink-soft)">
+  {% if month %}No games recorded in {{ month_label }}.
+  {% else %}No games recorded yet. Log your first game below to start the standings.{% endif %}
+</p>
 {% endif %}
+</div>
