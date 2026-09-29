@@ -1,0 +1,4 @@
+# Not an installable package — this file exists to configure pytest.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

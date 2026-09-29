@@ -1,4 +1,4 @@
-<form hx-post="{{ url_for('create_game_route') }}"
+<form hx-post="{{ url_for('admin.create_game') }}"
       hx-target="#log-slot"
       hx-swap="innerHTML">
 
@@ -48,7 +48,7 @@
 </form>
 
 <form class="addplayer"
-      hx-post="{{ url_for('add_player') }}"
+      hx-post="{{ url_for('admin.add_player') }}"
       hx-target="#roster-picker"
       hx-swap="innerHTML"
       hx-on::after-request="this.reset()">

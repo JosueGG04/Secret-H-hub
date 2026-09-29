@@ -2,6 +2,6 @@
   ✦ Game recorded — {{ faction }} victory added to the chronicle. Standings updated.
 </div>
 <button class="btn block"
-        hx-get="{{ url_for('new_game_form') }}"
+        hx-get="{{ url_for('admin.new_game_form') }}"
         hx-target="#log-slot"
         hx-swap="innerHTML">Record Another Game</button>

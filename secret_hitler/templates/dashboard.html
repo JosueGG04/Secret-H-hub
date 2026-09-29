@@ -98,7 +98,7 @@
     <div class="award">
       <div class="award-label">{{ a.label }}</div>
       <div class="award-value">{{ a.value }}</div>
-      <a class="award-name" href="{{ url_for('player_page', player_id=a.player_id) }}">{{ a.name }}</a>
+      <a class="award-name" href="{{ url_for('public.player_page', player_id=a.player_id) }}">{{ a.name }}</a>
       <div class="award-detail">{{ a.detail }}</div>
     </div>
     {% endfor %}
@@ -128,9 +128,9 @@
           {% for d in pairs.duos %}
           <tr>
             <td>
-              <a class="pname" href="{{ url_for('player_page', player_id=d.id1) }}">{{ d.n1 }}</a>
+              <a class="pname" href="{{ url_for('public.player_page', player_id=d.id1) }}">{{ d.n1 }}</a>
               <span class="amp">&amp;</span>
-              <a class="pname" href="{{ url_for('player_page', player_id=d.id2) }}">{{ d.n2 }}</a>
+              <a class="pname" href="{{ url_for('public.player_page', player_id=d.id2) }}">{{ d.n2 }}</a>
               <div class="rolemix">Same faction</div>
             </td>
             <td class="num">
@@ -161,9 +161,9 @@
           {% for d in pairs.rivals %}
           <tr>
             <td>
-              <a class="pname" href="{{ url_for('player_page', player_id=d.id1) }}">{{ d.n1 }}</a>
+              <a class="pname" href="{{ url_for('public.player_page', player_id=d.id1) }}">{{ d.n1 }}</a>
               <span class="amp">vs</span>
-              <a class="pname" href="{{ url_for('player_page', player_id=d.id2) }}">{{ d.n2 }}</a>
+              <a class="pname" href="{{ url_for('public.player_page', player_id=d.id2) }}">{{ d.n2 }}</a>
               <div class="rolemix">Opposite factions</div>
             </td>
             <td class="num">

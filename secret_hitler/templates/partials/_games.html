@@ -12,7 +12,7 @@
         </span>
         {% if is_admin %}
         <button class="iconbtn"
-                hx-delete="{{ url_for('delete_game', game_id=g.id) }}"
+                hx-delete="{{ url_for('admin.delete_game', game_id=g.id) }}"
                 hx-target="#game-{{ g.id }}"
                 hx-swap="outerHTML swap:0.2s"
                 hx-confirm="Delete this game? Standings will update.">Delete</button>

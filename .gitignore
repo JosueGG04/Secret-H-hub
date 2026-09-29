@@ -11,6 +11,7 @@ env/
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # SQLite database
 *.db
@@ -30,3 +31,5 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+# pytest
+.pytest_cache/

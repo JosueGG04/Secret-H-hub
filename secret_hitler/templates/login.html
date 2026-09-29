@@ -17,7 +17,7 @@
   <div class="notice err">✕ {{ error }}</div>
   {% endif %}
 
-  <form method="post" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+  <form method="post" action="{{ url_for('auth.login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
     <div class="field">
       <label for="username">Username</label>
       <input class="input" type="text" id="username" name="username" autocomplete="username" autofocus>
@@ -30,7 +30,7 @@
   </form>
 
   <p style="text-align:center; margin-top:16px;">
-    <a class="admin-link" href="{{ url_for('index') }}" style="color:var(--gold-2)">‹ Back to standings</a>
+    <a class="admin-link" href="{{ url_for('public.index') }}" style="color:var(--gold-2)">‹ Back to standings</a>
   </p>
 </section>
 

@@ -1,16 +1,16 @@
 <div id="leaderboard"
-     hx-get="{{ url_for('leaderboard', month=month) }}"
+     hx-get="{{ url_for('public.leaderboard', month=month) }}"
      hx-trigger="gameLogged from:body"
      hx-swap="outerHTML">
 
   {% if months %}
   <div class="month-tabs">
     <button type="button" class="month-tab {{ 'on' if not month }}"
-            hx-get="{{ url_for('leaderboard') }}"
+            hx-get="{{ url_for('public.leaderboard') }}"
             hx-target="#leaderboard" hx-swap="outerHTML">All time</button>
     {% for m in months %}
     <button type="button" class="month-tab {{ 'on' if month == m.value }}"
-            hx-get="{{ url_for('leaderboard', month=m.value) }}"
+            hx-get="{{ url_for('public.leaderboard', month=m.value) }}"
             hx-target="#leaderboard" hx-swap="outerHTML">{{ m.label }}</button>
     {% endfor %}
   </div>
@@ -38,7 +38,7 @@
         {% endif %}
       </td>
       <td>
-        <a class="pname" href="{{ url_for('player_page', player_id=p.id) }}">{{ p.name }}</a>
+        <a class="pname" href="{{ url_for('public.player_page', player_id=p.id) }}">{{ p.name }}</a>
         <div class="rolemix">
           {% if p.games %}
             {{ p.lib_games }} Lib · {{ p.fas_games }} Fas · {{ p.hitler_games }} Hitler

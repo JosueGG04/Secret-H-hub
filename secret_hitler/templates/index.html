@@ -2,7 +2,7 @@
 {% block body %}
 
 <div id="summary-strip"
-     hx-get="{{ url_for('summary') }}"
+     hx-get="{{ url_for('public.summary') }}"
      hx-trigger="gameLogged from:body"
      hx-swap="outerHTML">
   {% include "partials/_summary.html" %}
@@ -34,7 +34,7 @@
     <span class="count">Most recent first</span>
   </div>
   <div id="game-list"
-       hx-get="{{ url_for('games_list') }}"
+       hx-get="{{ url_for('public.games_list') }}"
        hx-trigger="gameLogged from:body"
        hx-swap="innerHTML">
     {% include "partials/_games.html" %}
