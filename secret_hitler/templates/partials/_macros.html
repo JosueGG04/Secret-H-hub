@@ -1,0 +1,30 @@
+{# Numbered pager. `target` is the region this replaces; any extra keyword
+   arguments are passed straight through to url_for (e.g. player_id).
+
+   Attributes go in {% if %} blocks, not {{ }} expressions: an expression
+   carrying quotes would be autoescaped into aria-current=&#34;page&#34;. #}
+{% macro pager(page, endpoint, target) -%}
+{% if page.pages > 1 %}
+<nav class="pager" aria-label="Pagination">
+  {# htmx does not fire from a disabled button, so these are inert at the ends
+     while keeping the row's width steady. #}
+  <button type="button" class="page-btn edge"{% if not page.has_prev %} disabled{% endif %}
+          hx-get="{{ url_for(endpoint, page=page.prev, **kwargs) }}"
+          hx-target="{{ target }}" hx-swap="outerHTML">‹ Prev</button>
+  {% for n in page.window %}
+    {%- if n %}
+  <button type="button" class="page-btn{{ ' on' if n == page.number }}"
+          {%- if n == page.number %} aria-current="page"{% endif %}
+          hx-get="{{ url_for(endpoint, page=n, **kwargs) }}"
+          hx-target="{{ target }}" hx-swap="outerHTML">{{ n }}</button>
+    {%- else %}
+  <span class="page-gap">…</span>
+    {%- endif %}
+  {%- endfor %}
+  <button type="button" class="page-btn edge"{% if not page.has_next %} disabled{% endif %}
+          hx-get="{{ url_for(endpoint, page=page.next, **kwargs) }}"
+          hx-target="{{ target }}" hx-swap="outerHTML">Next ›</button>
+</nav>
+<p class="pager-note">{{ page.first_item }}–{{ page.last_item }} of {{ page.total }}</p>
+{% endif %}
+{%- endmacro %}

@@ -453,6 +453,48 @@ a:hover { color: var(--oxblood-2); }
 }
 .iconbtn:hover { background: var(--oxblood); color: #fff; border-color: var(--oxblood); }
 
+/* ---- Pager --------------------------------------------------------------- */
+/* Deliberately the same chip idiom as .month-tab above: both are "pick one of
+   these" controls, and the page reads as one system if they match. */
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  overflow-x: auto;                 /* many pages scroll rather than wrap */
+  scrollbar-width: none;
+}
+.pager::-webkit-scrollbar { display: none; }
+.page-btn {
+  font: inherit;
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 10px;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  background: var(--cream-2);
+  border: 1px solid var(--gold-line);
+  padding: 6px 12px;
+  cursor: pointer;
+  min-width: 34px;                  /* single digits don't pinch narrower than Prev */
+}
+.page-btn:hover:not(:disabled) { color: var(--oxblood); border-color: var(--oxblood); }
+.page-btn.on {
+  background: var(--oxblood);
+  border-color: var(--oxblood);
+  color: var(--cream);
+}
+.page-btn:disabled { opacity: 0.4; cursor: default; }
+.page-btn.edge { letter-spacing: 0.12em; }
+.page-gap { color: var(--ink-soft); font-size: 11px; padding: 0 2px; }
+.pager-note {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+}
+
 /* ---- Log-a-game panel ---------------------------------------------------- */
 
 .log-panel {
@@ -856,4 +898,6 @@ a:hover { color: var(--oxblood-2); }
   .deconav a { letter-spacing: 0.14em; }
   .month-tabs { gap: 6px; }
   .month-tab { letter-spacing: 0.12em; padding: 6px 9px; }
+  .pager { gap: 6px; }
+  .page-btn { letter-spacing: 0.1em; padding: 6px 9px; min-width: 30px; }
 }

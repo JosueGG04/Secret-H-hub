@@ -1,12 +1,16 @@
 """Standings, monthly scoping, player records, and the dashboard aggregates."""
 
+import pytest
+
 from secret_hitler.repository import create_game
-from secret_hitler.stats.dashboard import awards, game_shape_stats, pair_rows
+from secret_hitler.stats.dashboard import (
+    awards, game_shape_stats, nights_context, pair_rows,
+)
 from secret_hitler.stats.leaderboard import (
     available_months, leaderboard_rows, month_label, valid_month,
 )
 from secret_hitler.stats.players import (
-    game_detail_rows, player_detail, summary_stats,
+    game_detail_rows, player_detail, player_history, summary_stats,
 )
 
 
@@ -112,7 +116,15 @@ def test_player_detail_splits_the_record_by_role(app, table):
     assert d["by_role"]["Hitler"]["games"] == 1
     assert d["by_role"]["Fascist"]["games"] == 2
     assert d["by_role"]["Liberal"]["games"] == 0
-    assert len(d["history"]) == 3
+
+
+def test_player_history_is_newest_first(app, table):
+    with app.app_context():
+        history = player_history(table["Bruno"])
+    assert [h["played_on"] for h in history] == [
+        "2026-08-02", "2026-07-08", "2026-07-01"]
+    for h in history:
+        assert h["condition_label"]
 
 
 def test_player_detail_is_none_for_a_stranger(app):
@@ -126,11 +138,56 @@ def test_game_shape_keeps_a_row_for_every_condition(app, table):
     assert shape["total_games"] == 3
     assert len(shape["conditions"]) == 4          # including the ones at zero
     assert sum(c["count"] for c in shape["conditions"]) == 3
-    assert [n["played_on"] for n in shape["nights"]] == [
-        "2026-07-01", "2026-07-08", "2026-08-02"]
     for row in shape["by_size"]:
         assert row["lib"] + row["fas"] == row["games"]
         assert round(row["lib_pct"] + row["fas_pct"]) == 100
+
+
+def test_nights_default_to_the_most_recent_month(app, table):
+    with app.app_context():
+        n = nights_context()
+    # The fixture's newest night is 2026-08-02, alone in its month.
+    assert n["month"] == "2026-08"
+    assert n["month_label"] == "August 2026"
+    assert [x["played_on"] for x in n["nights"]] == ["2026-08-02"]
+    assert [m["value"] for m in n["months"]] == ["2026-08", "2026-07"]
+
+
+def test_nights_scope_to_the_month_asked_for(app, table):
+    with app.app_context():
+        n = nights_context("2026-07")
+    assert [x["played_on"] for x in n["nights"]] == ["2026-07-01", "2026-07-08"]
+    assert n["nights"][0]["label"] == "Jul 1"
+    for x in n["nights"]:
+        assert x["lib"] + x["fas"] == x["games"]
+
+
+@pytest.mark.parametrize("bad", ["garbage", "2026-13", "1999-01", None, ""])
+def test_a_bad_or_empty_month_falls_back_to_the_newest(app, table, bad):
+    """Including a well-formed month with no games — it must not render blank."""
+    with app.app_context():
+        assert nights_context(bad)["month"] == "2026-08"
+
+
+def test_the_peak_cap_indexes_into_the_month_on_show(app, table):
+    """peak is compared to loop.index0 in the template, so it has to be an
+    index into the filtered list, not the whole series."""
+    with app.app_context():
+        create_game("2026-07-08", "liberal_policies", [
+            (table[n], "Hitler" if n == "Ada" else "Liberal")
+            for n in ("Ada", "Bruno", "Cleo", "Dov", "Eli")
+        ])
+        n = nights_context("2026-07")
+    # 2026-07-08 now has 2 games and is the month's busiest, at index 1.
+    assert n["busiest"] == 2
+    assert n["peak"] == 1
+    assert n["nights"][n["peak"]]["played_on"] == "2026-07-08"
+
+
+def test_nights_are_empty_with_no_games_at_all(app):
+    with app.app_context():
+        n = nights_context()
+    assert n["nights"] == [] and n["month"] is None and n["busiest"] == 0
 
 
 def test_awards_drop_tiles_with_no_qualifier(app, table):

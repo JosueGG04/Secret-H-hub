@@ -1,3 +1,11 @@
+{% import "partials/_macros.html" as ui %}
+{# The wrapper lives here, not in index.html, so the pager can re-render itself
+   and the gameLogged refresh comes back to the page you were reading. #}
+<div id="game-list"
+     hx-get="{{ url_for('public.games_list', page=page.number) }}"
+     hx-trigger="gameLogged from:body"
+     hx-swap="outerHTML">
+
 {% if games %}
   {% for g in games %}
   <div class="game {{ 'win-lib' if g.winning_faction == 'Liberal' else 'win-fas' }}" id="game-{{ g.id }}">
@@ -30,6 +38,9 @@
     </div>
   </div>
   {% endfor %}
+
+  {{ ui.pager(page, 'public.games_list', '#game-list') }}
 {% else %}
 <p style="color:var(--ink-soft)">The chronicle is empty. Recorded games will appear here.</p>
 {% endif %}
+</div>

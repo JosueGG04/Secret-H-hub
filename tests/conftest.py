@@ -55,3 +55,29 @@ def table(app):
         # Fascists win, so Ada loses
         create_game("2026-08-02", "fascist_policies", roster("Eli", "Bruno"))
     return ids
+
+
+@pytest.fixture
+def busy_table(app):
+    """14 games across two months — enough for two pages of ten and two month
+    chips. Every game has the same five players, so one player's history pages
+    too. Returns {name: player_id}.
+
+    March gets 10 games over 4 nights (one night doubled, so it is the month's
+    busiest); April gets 4 games over 4 nights.
+    """
+    nights = (
+        [("2026-03-%02d" % d, 2) for d in (2, 9)] +      # 4 games
+        [("2026-03-%02d" % d, 3) for d in (16, 23)] +    # 6 games -> 10 in March
+        [("2026-04-%02d" % d, 1) for d in (6, 13, 20, 27)]
+    )
+    with app.app_context():
+        for name in NAMES:
+            add_player(name)
+        ids = {r["name"]: r["id"] for r in all_players()}
+        roster = [(ids[n], "Hitler" if n == "Bruno" else "Liberal")
+                  for n in NAMES[:5]]
+        for played_on, count in nights:
+            for _ in range(count):
+                create_game(played_on, "liberal_policies", roster)
+    return ids

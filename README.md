@@ -20,6 +20,9 @@ htmx swaps the leaderboard, stats, and game log in place as you record games.
 - **Per-player pages** with overall record and win rate broken down by role
 - **Game log** with full roster, roles, and outcome; delete a game to correct it
 - **Add players** on the fly
+- **Paged for the long run** — the game log and each player's appearances page
+  ten at a time, and the Game Nights chart shows one month per chip, so none of
+  them sprawls as the archive grows
 
 ## Roles & access
 The tracker has two access levels:
@@ -96,6 +99,7 @@ secret_hitler/
   schema.sql                  players, games, game_players
   domain.py                   win conditions, roles, faction rules
   repository.py               reads and writes against the three tables
+  pagination.py               Page: offsets and the pager's own numbers
   forms.py                    shared context for the record-a-game form
   auth.py                     admin sign-in + the admin_required guard
   stats/
@@ -116,8 +120,9 @@ secret_hitler/
     player.html               single-player record page
     login.html                admin sign-in
     partials/                 htmx fragments (swapped in without a reload)
-      _leaderboard.html  _games.html  _game_form.html
-      _roster_picker.html  _summary.html
-      _form_success.html  _form_error.html
+      _leaderboard.html  _games.html  _player_games.html
+      _nights.html  _game_form.html  _roster_picker.html
+      _summary.html  _form_success.html  _form_error.html
+      _macros.html            the numbered pager, shared by both game lists
 tests/                        pytest suite on a temporary database
 ```

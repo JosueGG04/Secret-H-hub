@@ -63,24 +63,7 @@
 
   </div>
 
-  <div class="panel wide">
-    <h3 class="panel-head">Game Nights</h3>
-    <div class="nights">
-      {% for n in shape.nights %}
-      <div class="night">
-        <div class="col-slot">
-          <i style="height: {{ (n.games / shape.busiest * 100) if shape.busiest else 0 }}%"></i>
-          {% if loop.index0 == shape.peak %}<span class="cap">{{ n.games }}</span>{% endif %}
-          <span class="tip">{{ n.label }} · {{ n.games }} game{{ '' if n.games == 1 else 's' }}
-                            ({{ n.lib }} Lib · {{ n.fas }} Fas)</span>
-        </div>
-        <div class="night-label"><span class="mo">{{ n.month }}</span>{{ n.day }}</div>
-      </div>
-      {% endfor %}
-    </div>
-    <p class="chart-note">{{ shape.nights | length }} night{{ '' if shape.nights | length == 1 else 's' }}
-      at the table, earliest first.</p>
-  </div>
+  {% include "partials/_nights.html" %}
   {% else %}
   <p style="color:var(--ink-soft)">No games recorded yet. The shape of the game appears once the first game is logged.</p>
   {% endif %}

@@ -16,6 +16,17 @@ def get_player(player_id):
         "SELECT * FROM players WHERE id=?", (player_id,)).fetchone()
 
 
+def count_games():
+    return get_db().execute("SELECT COUNT(*) c FROM games").fetchone()["c"]
+
+
+def count_player_games(player_id):
+    return get_db().execute(
+        "SELECT COUNT(*) c FROM game_players WHERE player_id=?",
+        (player_id,),
+    ).fetchone()["c"]
+
+
 def add_player(name):
     """Insert a player. Returns False if the name is already taken."""
     db = get_db()

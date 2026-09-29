@@ -33,12 +33,7 @@
     <h2>The Chronicle</h2>
     <span class="count">Most recent first</span>
   </div>
-  <div id="game-list"
-       hx-get="{{ url_for('public.games_list') }}"
-       hx-trigger="gameLogged from:body"
-       hx-swap="innerHTML">
-    {% include "partials/_games.html" %}
-  </div>
+  {% include "partials/_games.html" %}
 </section>
 
 {% endblock %}

@@ -1,0 +1,35 @@
+{# One month of nights. The chip row is re-rendered with the panel, so the
+   active chip is server-decided — there is no client-side toggle. #}
+<div id="game-nights" class="panel wide">
+  <h3 class="panel-head">Game Nights</h3>
+
+  {% if nights.months %}
+  <div class="month-tabs">
+    {% for m in nights.months %}
+    <button type="button" class="month-tab {{ 'on' if nights.month == m.value }}"
+            hx-get="{{ url_for('public.dashboard_nights', month=m.value) }}"
+            hx-target="#game-nights" hx-swap="outerHTML">{{ m.label }}</button>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if nights.nights %}
+  <div class="nights">
+    {% for n in nights.nights %}
+    <div class="night">
+      <div class="col-slot">
+        <i style="height: {{ (n.games / nights.busiest * 100) if nights.busiest else 0 }}%"></i>
+        {% if loop.index0 == nights.peak %}<span class="cap">{{ n.games }}</span>{% endif %}
+        <span class="tip">{{ n.label }} · {{ n.games }} game{{ '' if n.games == 1 else 's' }}
+                          ({{ n.lib }} Lib · {{ n.fas }} Fas)</span>
+      </div>
+      <div class="night-label"><span class="mo">{{ n.month }}</span>{{ n.day }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="chart-note">{{ nights.nights | length }} night{{ '' if nights.nights | length == 1 else 's' }}
+    at the table in {{ nights.month_label }}, earliest first.</p>
+  {% else %}
+  <p style="color:var(--ink-soft)">No games recorded in this month.</p>
+  {% endif %}
+</div>

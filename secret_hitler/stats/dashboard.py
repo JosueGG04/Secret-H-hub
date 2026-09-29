@@ -5,6 +5,7 @@ from datetime import datetime
 
 from ..db import get_db
 from ..domain import WIN_CONDITIONS, role_faction
+from .leaderboard import available_months, month_label, valid_month
 
 
 def _night_label(played_on):
@@ -19,8 +20,53 @@ def _night_label(played_on):
     return d.strftime("%b"), str(d.day)   # %-d is not portable to Windows
 
 
+def nights_context(month=None):
+    """One month of game nights, oldest first, plus the chip row's own data.
+
+    The chart draws one column per night, so it is scoped to a single month to
+    keep its width bounded; `month=None` means the most recent month on record.
+    Mirrors stats.leaderboard.leaderboard_context().
+    """
+    months = available_months()
+    month = valid_month(month)
+    if month is None or month not in [m["value"] for m in months]:
+        month = months[0]["value"] if months else None
+
+    nights = []
+    if month:
+        for r in get_db().execute(
+            """SELECT played_on, COUNT(*) AS games,
+                      COALESCE(SUM(winning_faction='Liberal'), 0) AS lib
+               FROM games
+               WHERE substr(played_on, 1, 7) = ?
+               GROUP BY played_on ORDER BY played_on""",
+            (month,),
+        ):
+            d = dict(r)
+            d["fas"] = d["games"] - d["lib"]
+            d["month"], d["day"] = _night_label(d["played_on"])
+            d["label"] = ("%s %s" % (d["month"], d["day"])).strip()
+            nights.append(d)
+
+    # Bars scale to the busiest night of the month on show, so a quiet month
+    # still fills the plot; exact counts stay in each bar's tooltip.
+    busiest = max((n["games"] for n in nights), default=0)
+    # Only the first peak gets a printed cap — nights often tie at the top and
+    # a number over each one is noise. An index into *this* month's list.
+    peak = next((i for i, n in enumerate(nights) if n["games"] == busiest), None)
+
+    return {
+        "nights": nights,
+        "busiest": busiest,
+        "peak": peak,
+        "month": month,
+        "month_label": month_label(month) if month else None,
+        "months": months,
+    }
+
+
 def game_shape_stats():
-    """How games end, how table size skews them, and when they were played."""
+    """How games end and how table size skews them."""
     db = get_db()
     total = db.execute("SELECT COUNT(*) c FROM games").fetchone()["c"]
 
@@ -49,29 +95,10 @@ def game_shape_stats():
         d["fas_pct"] = d["fas"] / d["games"] * 100
         by_size.append(d)
 
-    nights = []
-    for r in db.execute(
-        """SELECT played_on, COUNT(*) AS games,
-                  COALESCE(SUM(winning_faction='Liberal'), 0) AS lib
-           FROM games GROUP BY played_on ORDER BY played_on"""
-    ):
-        d = dict(r)
-        d["fas"] = d["games"] - d["lib"]
-        d["month"], d["day"] = _night_label(d["played_on"])
-        d["label"] = ("%s %s" % (d["month"], d["day"])).strip()
-        nights.append(d)
-    busiest = max((n["games"] for n in nights), default=0)
-    # Only the first peak gets a printed cap — half the nights tie at the top and
-    # a number over each one is noise.
-    peak = next((i for i, n in enumerate(nights) if n["games"] == busiest), None)
-
     return {
         "conditions": conditions,
         "most": most,
         "by_size": by_size,
-        "nights": nights,
-        "busiest": busiest,
-        "peak": peak,
         "total_games": total,
     }
 

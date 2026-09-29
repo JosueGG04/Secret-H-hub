@@ -33,24 +33,7 @@
     <span class="count">{{ d.games }} game{{ '' if d.games == 1 else 's' }}</span>
   </div>
 
-  {% if d.history %}
-    {% for h in d.history %}
-    <div class="game {{ 'win-lib' if h.winning_faction == 'Liberal' else 'win-fas' }}">
-      <div class="game-top">
-        <div>
-          <div class="game-date">{{ h.played_on }} · {{ h.num_players }} players</div>
-          <div class="game-cond">{{ h.condition_label }}</div>
-        </div>
-        <div class="game-meta">
-          <span class="pill {{ 'hitler' if h.role == 'Hitler' else ('fas' if h.role == 'Fascist' else 'lib') }}">{{ h.role }}</span>
-          <span class="tag-win {{ 'lib' if h.won else 'fas' }}">{{ 'Won' if h.won else 'Lost' }}</span>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
-  {% else %}
-    <p style="color:var(--ink-soft)">No games recorded for {{ d.player.name }} yet.</p>
-  {% endif %}
+  {% include "partials/_player_games.html" %}
 </section>
 
 {% endblock %}
