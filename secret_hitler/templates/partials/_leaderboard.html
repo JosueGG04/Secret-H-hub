@@ -17,6 +17,23 @@
   {% endif %}
 
 {% if board and board[0].games %}
+{% if split.games %}
+<div class="faction-split">
+  <div class="fs-row">
+    <span class="fs-side lib">Liberals <b>{{ split.lib }}</b></span>
+    <span class="split-n">{{ split.games }} game{{ '' if split.games == 1 else 's' }}</span>
+    <span class="fs-side fas"><b>{{ split.fas }}</b> Fascists</span>
+  </div>
+  <div class="split-bar">
+    {% if split.lib %}<i class="lib" style="width: {{ split.lib_pct }}%"></i>{% endif %}
+    {% if split.fas %}<i class="fas" style="width: {{ split.fas_pct }}%"></i>{% endif %}
+  </div>
+  <div class="fs-row split-foot">
+    <span>{{ '%.0f' | format(split.lib_pct) }}%</span>
+    <span>{{ '%.0f' | format(split.fas_pct) }}%</span>
+  </div>
+</div>
+{% endif %}
 <table class="board">
   <thead>
     <tr>

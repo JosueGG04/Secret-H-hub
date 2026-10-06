@@ -86,10 +86,31 @@ def leaderboard_rows(min_games=1, month=None):
     return result
 
 
+def faction_split(month=None):
+    """Liberal vs Fascist game wins, all time or for one 'YYYY-MM' month."""
+    row = get_db().execute(
+        """SELECT COUNT(*) AS games,
+                  COALESCE(SUM(winning_faction='Liberal'), 0) AS lib
+           FROM games
+           WHERE ? IS NULL OR substr(played_on, 1, 7) = ?""",
+        (month, month),
+    ).fetchone()
+    games, lib = row["games"], row["lib"]
+    fas = games - lib
+    return {
+        "games": games,
+        "lib": lib,
+        "fas": fas,
+        "lib_pct": (lib / games * 100) if games else 0.0,
+        "fas_pct": (fas / games * 100) if games else 0.0,
+    }
+
+
 def leaderboard_context(month=None):
     """Everything _leaderboard.html needs, so index() and leaderboard() can't drift."""
     return {
         "board": leaderboard_rows(month=month),
+        "split": faction_split(month),
         "month": month,
         "month_label": month_label(month) if month else None,
         "months": available_months(),

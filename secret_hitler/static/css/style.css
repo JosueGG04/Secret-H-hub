@@ -280,6 +280,20 @@ a:hover { color: var(--oxblood-2); }
   scrollbar-width: none;
 }
 .month-tabs::-webkit-scrollbar { display: none; }
+
+/* Liberal vs Fascist game wins for the board's scope; bar reuses .split-bar */
+.faction-split { margin-bottom: 18px; }
+.faction-split .fs-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.faction-split .fs-row:first-child { margin-bottom: 6px; }
+.fs-side { font-family: var(--font-head); font-size: 15px; }
+.fs-side b { font-size: 20px; }
+.fs-side.lib { color: var(--liberal-fill); }
+.fs-side.fas { color: var(--fascist); }
 .month-tab {
   font: inherit;
   font-family: var(--font-head);

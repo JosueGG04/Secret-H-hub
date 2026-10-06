@@ -7,7 +7,7 @@ from secret_hitler.stats.dashboard import (
     awards, game_shape_stats, nights_context, pair_rows,
 )
 from secret_hitler.stats.leaderboard import (
-    available_months, leaderboard_rows, month_label, valid_month,
+    available_months, faction_split, leaderboard_rows, month_label, valid_month,
 )
 from secret_hitler.stats.players import (
     game_detail_rows, player_detail, player_history, summary_stats,
@@ -75,6 +75,24 @@ def test_monthly_board_only_counts_that_month(app, table):
     assert august["Ada"]["games"] == 1 and august["Ada"]["wins"] == 0
     # A monthly board lists only that month's participants — Fern sat out.
     assert "Fern" not in july
+
+
+def test_faction_split_all_time_and_monthly(app, table):
+    with app.app_context():
+        everything = faction_split()
+        july = faction_split("2026-07")
+        august = faction_split("2026-08")
+
+    assert (everything["games"], everything["lib"], everything["fas"]) == (3, 2, 1)
+    assert round(everything["lib_pct"] + everything["fas_pct"]) == 100
+    assert (july["lib"], july["fas"], july["lib_pct"]) == (2, 0, 100.0)
+    assert (august["lib"], august["fas"], august["fas_pct"]) == (0, 1, 100.0)
+
+
+def test_faction_split_is_safe_on_an_empty_table(app):
+    with app.app_context():
+        assert faction_split() == {"games": 0, "lib": 0, "fas": 0,
+                                   "lib_pct": 0.0, "fas_pct": 0.0}
 
 
 def test_available_months_are_newest_first(app, table):

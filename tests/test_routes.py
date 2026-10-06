@@ -28,6 +28,11 @@ def test_leaderboard_month_filter(client, table):
     assert client.get("/leaderboard?month=2026-07").status_code == 200
 
 
+def test_leaderboard_shows_the_faction_split(client, table):
+    assert b"faction-split" in client.get("/leaderboard").data
+    assert b"faction-split" in client.get("/leaderboard?month=2026-08").data
+
+
 def test_a_malformed_month_falls_back_to_all_time(client, table):
     garbage = client.get("/leaderboard?month=garbage").data
     assert garbage == client.get("/leaderboard").data
