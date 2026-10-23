@@ -1,17 +1,16 @@
 """Write endpoints. Every view here is behind admin_required."""
 
-from datetime import date
-
-from flask import Blueprint, make_response, render_template, request
+from flask import Blueprint, make_response, render_template, request, url_for
 
 from ..auth import admin_required
-from ..domain import MAX_PLAYERS, MIN_PLAYERS, ROLES, WIN_CONDITIONS
-from ..forms import game_form_context
+from ..domain import MAX_PLAYERS, MIN_PLAYERS, WIN_CONDITIONS
+from ..forms import game_form_context, game_form_state, read_picks
 from ..repository import (
     add_player as insert_player,
     all_players,
     create_game as record_game,
     delete_game as remove_game,
+    find_player,
 )
 
 bp = Blueprint("admin", __name__)
@@ -24,28 +23,16 @@ def _trigger(resp, event):
 
 
 def _form_error(message):
-    return render_template("partials/_form_error.html",
-                           message=message, **game_form_context()), 422
-
-
-def _as_int(value):
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
+    # Re-render with what was submitted, so fixing one mistake doesn't mean
+    # re-entering the whole game.
+    return render_template("partials/_form_error.html", message=message,
+                           **game_form_context(request.form)), 422
 
 
 def _parse_roster(form):
     """Read the ticked players and their roles. Returns (roster, error)."""
-    roster = []
-    hitler_ct = 0
-    for pid in form.getlist("include"):      # list of player_id strings
-        role = form.get("role_%s" % pid, "Liberal")
-        if role not in ROLES:
-            role = "Liberal"
-        if role == "Hitler":
-            hitler_ct += 1
-        roster.append((int(pid), role))
+    roster = read_picks(form)
+    hitler_ct = sum(1 for _, role in roster if role == "Hitler")
 
     n = len(roster)
     if n < MIN_PLAYERS or n > MAX_PLAYERS:
@@ -59,7 +46,9 @@ def _parse_roster(form):
 @bp.route("/games/new")
 @admin_required
 def new_game_form():
-    return render_template("partials/_game_form.html", **game_form_context())
+    # "Record another" passes the last game's night and players along.
+    return render_template("partials/_game_form.html",
+                           **game_form_context(request.args))
 
 
 @bp.route("/games", methods=["POST"])
@@ -75,18 +64,24 @@ def create_game():
     if error:
         return _form_error(error)
 
+    state = game_form_state(f)
     record_game(
-        f.get("played_on") or date.today().isoformat(),
+        state["played_on"],
         win_condition,
         roster,
-        liberal_policies=_as_int(f.get("liberal_policies")),
-        fascist_policies=_as_int(f.get("fascist_policies")),
-        notes=(f.get("notes") or "").strip() or None,
+        liberal_policies=state["liberal_policies"],
+        fascist_policies=state["fascist_policies"],
+        notes=state["notes"].strip() or None,
     )
 
+    # The next game is usually the same night at the same table, so offer a
+    # form with both kept and the roles cleared.
+    again = url_for("admin.new_game_form", played_on=state["played_on"],
+                    include=[pid for pid, _ in roster])
     resp = make_response(render_template(
         "partials/_form_success.html",
         faction=WIN_CONDITIONS[win_condition]["faction"],
+        again_url=again,
     ))
     return _trigger(resp, "gameLogged")
 
@@ -101,9 +96,15 @@ def delete_game(game_id):
 @bp.route("/players", methods=["POST"])
 @admin_required
 def add_player():
+    # The request carries the game form's picks too (hx-include), so the
+    # re-rendered roster keeps them, and the newcomer arrives ticked: they're
+    # being added because they played. An existing name just gets ticked.
+    picked = dict(read_picks(request.form))
     name = (request.form.get("name") or "").strip()
     if name:
         insert_player(name)
+        player = find_player(name)
+        picked.setdefault(player["id"], "Liberal")
     resp = make_response(render_template(
-        "partials/_roster_picker.html", players=all_players()))
+        "partials/_roster_picker.html", players=all_players(), picked=picked))
     return _trigger(resp, "playersChanged")

@@ -562,43 +562,6 @@ a:hover { color: var(--oxblood-2); }
   color: var(--ink);
 }
 .input:focus { outline: 2px solid var(--gold-2); outline-offset: 0; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-.roster-picker {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 14px;
-  max-height: 260px;
-  overflow-y: auto;
-  padding: 4px 6px 4px 2px;
-}
-.pick {
-  display: grid;
-  grid-template-columns: 22px 1fr auto;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border: 1px solid rgba(198,164,90,0.3);
-  background: rgba(241,230,200,0.05);
-}
-.pick input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--gold); }
-.pick .who { color: var(--cream); font-size: 15px; }
-.pick select {
-  font-family: var(--font-head);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 4px 6px;
-  background: var(--ink-2);
-  color: var(--cream);
-  border: 1px solid var(--gold-line);
-}
-.pick.on { background: rgba(216,178,90,0.12); border-color: var(--gold); }
-
-.addplayer { display: flex; gap: 8px; margin-top: 12px; }
-.addplayer .input { background: var(--ink-2); color: var(--cream); border-color: var(--gold-line); }
-.addplayer .input::placeholder { color: rgba(241,230,200,0.4); }
-
 .hint {
   font-size: 12px;
   color: rgba(241,230,200,0.6);
@@ -611,13 +574,13 @@ a:hover { color: var(--oxblood-2); }
 .notice.ok  { background: rgba(216,178,90,0.16); border: 1px solid var(--gold-2); color: var(--gold-2); }
 .notice.err { background: rgba(154,27,27,0.22); border: 1px solid var(--oxblood); color: #f3c9c9; }
 
-/* ---- Match search -------------------------------------------------------- */
+/* ---- Chip forms: the match search and the record-a-game form ------------ */
 
 .search-form .hint { color: var(--ink-soft); }   /* .hint is tuned for the dark log panel */
 .section-head a.count:hover { color: var(--oxblood); }
 
 /* Form rows: a label column and a control column, stacked on phones. */
-.sf-row {
+.frow {
   display: grid;
   grid-template-columns: 130px 1fr;
   gap: 8px 20px;
@@ -625,9 +588,9 @@ a:hover { color: var(--oxblood-2); }
   padding: 16px 0;
   border-top: 1px dashed rgba(198,164,90,0.6);
 }
-.sf-row:first-of-type { border-top: 0; padding-top: 0; }
-.sf-row:last-of-type { padding-bottom: 0; }
-.sf-label {
+.frow:first-of-type { border-top: 0; padding-top: 0; }
+.frow:last-of-type { padding-bottom: 0; }
+.frow-label {
   font-family: var(--font-head);
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -635,7 +598,7 @@ a:hover { color: var(--oxblood-2); }
   color: var(--ink-soft);
   padding-top: 8px;                 /* level with the first row of chips */
 }
-.sf-control { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.frow-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 /* A grid, not a wrapping row, so on a phone both boxes shrink instead of "to"
    being stranded beside the first one. */
 .sf-dates {
@@ -664,7 +627,7 @@ a:hover { color: var(--oxblood-2); }
   min-width: 40px;                  /* so the table-size digits aren't slivers */
 }
 .opt input:focus-visible + .month-tab,
-.search-form button.month-tab:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
+.frow button.month-tab:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
 .opt .dot { width: 7px; height: 7px; flex: none; transform: rotate(45deg); }
 .opt.lib .dot { background: var(--liberal-fill); }
 .opt.fas .dot { background: var(--oxblood); }
@@ -679,9 +642,9 @@ a:hover { color: var(--oxblood-2); }
 #search-results.htmx-request { opacity: 0.5; }
 
 @media (max-width: 720px) {
-  .sf-row { grid-template-columns: 1fr; }
-  .sf-label { padding-top: 0; }
-  .opt .month-tab, .search-form button.month-tab { letter-spacing: 0.1em; padding: 6px 9px; }
+  .frow { grid-template-columns: 1fr; }
+  .frow-label { padding-top: 0; }
+  .opt .month-tab, .frow button.month-tab { letter-spacing: 0.1em; padding: 6px 9px; }
   .opt .month-tab { min-width: 34px; }      /* Any + 5…10 on one line */
 }
 
@@ -705,7 +668,7 @@ a:hover { color: var(--oxblood-2); }
   cursor: pointer;
   user-select: none;
 }
-.pf-check, .pf-role input, .opt input {
+.pf-check, .pf-role input, .opt input, .track input {
   position: absolute;
   opacity: 0;
   width: 1px; height: 1px;
@@ -769,6 +732,119 @@ a:hover { color: var(--oxblood-2); }
   font-size: 14px;
   font-style: italic;
   color: var(--ink-soft);
+}
+
+/* ---- Record a game: the same chips on the dark log panel ----------------- */
+
+.game-form .btn.block { margin-top: 22px; }
+.log-panel .frow { border-top-color: rgba(198,164,90,0.25); }
+.log-panel .frow-label { color: var(--gold-2); }
+.frow-label small {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.65;
+}
+.gf-date { width: auto; padding: 6px 8px; font-size: 14px; }
+
+.log-panel .month-tab {
+  background: transparent;
+  color: rgba(241,230,200,0.75);
+  border-color: rgba(198,164,90,0.45);
+}
+.log-panel .month-tab:hover { color: var(--gold-2); border-color: var(--gold-2); }
+.log-panel .month-tab.on,
+.log-panel .opt input:checked + .month-tab { background: var(--gold-2); border-color: var(--gold-2); color: var(--ink); }
+.log-panel .opt.lib input:checked + .month-tab { background: var(--liberal-fill); border-color: var(--liberal-fill); color: var(--cream); }
+.log-panel .opt.fas input:checked + .month-tab { background: var(--oxblood); border-color: var(--oxblood); color: var(--cream); }
+
+.outcome-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.outcome-faction, .track-name {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10px;
+  color: rgba(241,230,200,0.55);
+}
+.outcome-faction { width: 120px; }
+
+.log-panel .pfilter { background: rgba(241,230,200,0.04); border-color: rgba(198,164,90,0.35); }
+.log-panel .pfilter:hover { border-color: var(--gold-2); }
+.log-panel .pf-who { color: var(--cream); }
+.log-panel .pfilter:has(.pf-check:checked) { background: rgba(216,178,90,0.12); border-color: var(--gold-2); }
+.log-panel .pfilter:has(.pf-check:checked) .pf-mark { background: var(--gold-2); border-color: var(--gold-2); }
+.log-panel .pf-roles { border-left-color: rgba(198,164,90,0.35); }
+.log-panel .pf-role + .pf-role { border-left-color: rgba(198,164,90,0.25); }
+.log-panel .pf-role span { color: rgba(241,230,200,0.6); }
+.log-panel .pf-role:hover span { color: var(--gold-2); }
+.log-panel .pf-role input:checked + span { color: var(--cream); }
+.log-panel .pf-role.lib input:checked + span { background: var(--liberal-fill); }
+/* Hitler's card is black, which vanishes on this panel, so it inverts. */
+.log-panel .pf-role.hitler input:checked + span { background: var(--cream); color: var(--ink); }
+
+.addplayer { display: flex; gap: 8px; max-width: 360px; }
+.addplayer .input {
+  padding: 6px 10px;
+  font-size: 14px;
+  background: var(--ink-2);
+  color: var(--cream);
+  border-color: rgba(198,164,90,0.45);
+}
+.addplayer .input::placeholder { color: rgba(241,230,200,0.4); }
+.addplayer .month-tab { flex: none; }
+
+/* The roster's running count, and whether it matches the rulebook. */
+.roster-status { margin: 0; font-size: 13px; color: rgba(241,230,200,0.7); }
+.roster-status .rs-verdict {
+  margin-left: 10px;
+  padding: 2px 8px;
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 10px;
+  white-space: nowrap;
+  border: 1px solid currentColor;
+}
+.roster-status[data-state="ok"] .rs-verdict { color: var(--gold-2); }
+.roster-status[data-state="warn"] .rs-verdict { color: var(--cream); border-style: dashed; }
+.roster-status[data-state="err"] .rs-verdict { color: #f3c9c9; background: rgba(154,27,27,0.35); }
+
+/* Policy tracks: "—" (not recorded), 0, then one slot per policy. */
+.track { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.track + .track { margin-top: 8px; }
+.track-name { width: 76px; }
+.track label { position: relative; display: flex; cursor: pointer; }
+.track label span {                 /* the slots, not the track's name */
+  display: flex; align-items: center; justify-content: center;
+  min-width: 30px; height: 30px;
+  font-family: var(--font-head);
+  font-size: 12px;
+  color: rgba(241,230,200,0.7);
+  border: 1px solid rgba(198,164,90,0.45);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.track-skip, .track .zero { margin-right: 6px; }    /* set apart from the slots */
+.track label:hover span { color: var(--gold-2); border-color: var(--gold-2); }
+.track input:focus-visible + span { outline: 2px solid var(--gold-2); outline-offset: 1px; }
+.track-skip input:checked + span,
+.track .zero input:checked + span {
+  background: rgba(216,178,90,0.18);
+  border-color: var(--gold-2);
+  color: var(--gold-2);
+}
+/* Picking N fills slots 1..N, like policies laid on the board. */
+.track .slot:not(.zero):has(~ .slot input:checked) span,
+.track .slot:not(.zero) input:checked + span { color: var(--cream); }
+.track.lib .slot:not(.zero):has(~ .slot input:checked) span,
+.track.lib .slot:not(.zero) input:checked + span { background: var(--liberal-fill); border-color: var(--liberal-fill); }
+.track.fas .slot:not(.zero):has(~ .slot input:checked) span,
+.track.fas .slot:not(.zero) input:checked + span { background: var(--oxblood); border-color: var(--oxblood); }
+
+@media (max-width: 720px) {
+  .outcome-faction, .track-name { width: 100%; }
 }
 
 /* ---- Player page --------------------------------------------------------- */
@@ -1053,7 +1129,7 @@ a:hover { color: var(--oxblood-2); }
   .summary-strip .cell:nth-child(1), .summary-strip .cell:nth-child(2) {
     border-bottom: 1px solid rgba(198,164,90,0.5);
   }
-  .row2, .roster-picker, .role-cards, .pstat-grid { grid-template-columns: 1fr; }
+  .role-cards, .pstat-grid { grid-template-columns: 1fr; }
   .pstat-grid { grid-template-columns: repeat(2,1fr); }
   .board thead { display: none; }
   .board, .board tbody, .board tr, .board td { display: block; width: 100%; }

@@ -1,14 +1,10 @@
-<div class="roster-picker">
+{% import "partials/_macros.html" as ui %}
+{# `picked` maps player id -> role for the ticked chips. Adding a player
+   re-renders this with the form's picks, so nothing ticked is lost. #}
+<div class="pfilter-grid">
   {% for p in players %}
-  <label class="pick" for="pick-{{ p.id }}">
-    <input type="checkbox" id="pick-{{ p.id }}" name="include" value="{{ p.id }}"
-           onchange="this.closest('.pick').classList.toggle('on', this.checked)">
-    <span class="who">{{ p.name }}</span>
-    <select name="role_{{ p.id }}" aria-label="Role for {{ p.name }}">
-      <option value="Liberal">Liberal</option>
-      <option value="Fascist">Fascist</option>
-      <option value="Hitler">Hitler</option>
-    </select>
-  </label>
+  {% set role = picked.get(p.id) %}
+  {{ ui.player_chip(p, 'include', p.id, 'role_%d' % p.id, ui.ROLE_BUTTONS,
+                    role or 'Liberal', role) }}
   {% endfor %}
 </div>

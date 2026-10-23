@@ -7,6 +7,18 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <script src="{{ url_for('static', filename='js/htmx.min.js') }}"></script>
+  <script>
+    // htmx drops 4xx responses by default, but a rejected game (422) and the
+    // admin guard (403) answer with fragments meant to be shown: the error
+    // notice above the form, still filled in.
+    document.addEventListener("htmx:beforeSwap", function (e) {
+      var status = e.detail.xhr.status;
+      if (status === 422 || status === 403) {
+        e.detail.shouldSwap = true;
+        e.detail.isError = false;
+      }
+    });
+  </script>
 </head>
 <body>
   <div class="shell">

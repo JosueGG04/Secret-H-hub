@@ -67,3 +67,45 @@
     {% endif %}
   </div>
 {%- endmacro %}
+
+{# Role buttons a player chip can offer: (value, short label, full name, css). #}
+{% set ROLE_BUTTONS = [
+  ('Liberal', 'Lib', 'Liberal', 'lib'),
+  ('Fascist', 'Fas', 'Fascist', 'fas'),
+  ('Hitler', 'Hitler', 'Hitler', 'hitler'),
+] %}
+{% set ANY_ROLE_BUTTON = ('any', 'Any', 'Any role', 'any') %}
+
+{# A player as a toggle chip. Ticking it (tick_name=tick_value) reveals its
+   role buttons (role_name=<role>) via CSS :has, no script. The role buttons
+   always submit, so whoever reads the form ignores them for unticked players.
+   Shared by the match search and the record-a-game form. #}
+{% macro player_chip(p, tick_name, tick_value, role_name, roles, role, ticked) -%}
+<div class="pfilter">
+  <label class="pf-who">
+    <input type="checkbox" class="pf-check" name="{{ tick_name }}" value="{{ tick_value }}"
+           {%- if ticked %} checked{% endif %}>
+    <span class="pf-mark" aria-hidden="true"></span>
+    <span class="pf-name">{{ p.name }}</span>
+  </label>
+  <span class="pf-roles" role="radiogroup" aria-label="Role for {{ p.name }}">
+    {% for value, short, title, css in roles %}
+    <label class="pf-role {{ css }}" title="{{ title }}">
+      <input type="radio" name="{{ role_name }}" value="{{ value }}" aria-label="{{ title }}"
+             {%- if role == value %} checked{% endif %}>
+      <span>{{ short }}</span>
+    </label>
+    {% endfor %}
+  </span>
+</div>
+{%- endmacro %}
+
+{# A radio dressed as a month chip. The input is hidden but focusable; the
+   chip shows its checked state. Used by both forms. #}
+{% macro radio_chip(name, value, label, checked, css='', title=none, dot=false, required=false) -%}
+<label class="opt {{ css }}"{% if title %} title="{{ title }}"{% endif %}>
+  <input type="radio" name="{{ name }}" value="{{ value }}"
+         {%- if checked %} checked{% endif %}{% if required %} required{% endif %}>
+  <span class="month-tab">{% if dot %}<i class="dot" aria-hidden="true"></i>{% endif %}{{ label }}</span>
+</label>
+{%- endmacro %}

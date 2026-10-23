@@ -1,45 +1,91 @@
-<form hx-post="{{ url_for('admin.create_game') }}"
+{% import "partials/_macros.html" as ui %}
+{% set faction_css = {'Liberal': 'lib', 'Fascist': 'fas'} %}
+
+{# A policy track as the board draws it: "—" for not recorded, then 0 up to a
+   full track. Picking a count fills every slot up to it (CSS :has). #}
+{% macro track(name, faction, css, length, value) -%}
+<div class="track {{ css }}" role="radiogroup" aria-label="{{ faction }} policies enacted">
+  <span class="track-name">{{ faction }}</span>
+  <label class="track-skip" title="Not recorded">
+    <input type="radio" name="{{ name }}" value=""{% if value is none %} checked{% endif %}>
+    <span>—</span>
+  </label>
+  {% for n in range(length + 1) %}
+  <label class="slot{{ ' zero' if n == 0 }}" title="{{ n }} {{ faction }} polic{{ 'y' if n == 1 else 'ies' }}">
+    <input type="radio" name="{{ name }}" value="{{ n }}"{% if value == n %} checked{% endif %}>
+    <span>{{ n }}</span>
+  </label>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+<form id="game-form" class="game-form"
+      hx-post="{{ url_for('admin.create_game') }}"
       hx-target="#log-slot"
       hx-swap="innerHTML">
 
-  <div class="row2">
-    <div class="field">
-      <label for="played_on">Date Played</label>
-      <input class="input" type="date" id="played_on" name="played_on" value="{{ today }}">
-    </div>
-    <div class="field">
-      <label for="win_condition">Outcome / Win Condition</label>
-      <select class="input" id="win_condition" name="win_condition" required>
-        <option value="" disabled selected>How did it end?</option>
-        {% for key, wc in win_conditions.items() %}
-        <option value="{{ key }}">{{ wc.label }} — {{ wc.faction }} win</option>
+  <div class="frow">
+    <label class="frow-label" for="played_on">Played</label>
+    <div class="frow-body">
+      <div class="opts">
+        <input class="input gf-date" type="date" id="played_on" name="played_on" value="{{ form.played_on }}">
+        {% for d in day_picks %}
+        <button type="button" class="month-tab{{ ' on' if form.played_on == d.date }}"
+                data-date="{{ d.date }}">{{ d.label }}</button>
         {% endfor %}
-      </select>
+      </div>
     </div>
   </div>
 
-  <div class="row2">
-    <div class="field">
-      <label for="liberal_policies">Liberal Policies (optional)</label>
-      <input class="input" type="number" min="0" max="5" id="liberal_policies" name="liberal_policies" placeholder="0–5">
-    </div>
-    <div class="field">
-      <label for="fascist_policies">Fascist Policies (optional)</label>
-      <input class="input" type="number" min="0" max="6" id="fascist_policies" name="fascist_policies" placeholder="0–6">
+  <div class="frow">
+    <span class="frow-label" id="gf-players">Who Played</span>
+    <div class="frow-body">
+      <div id="roster-picker" role="group" aria-labelledby="gf-players">
+        {% with picked = form.picked %}{% include "partials/_roster_picker.html" %}{% endwith %}
+      </div>
+      {# These belong to the add-player form below (form="add-player"), so
+         Enter here adds a player instead of recording the game. #}
+      <div class="addplayer">
+        <input class="input" type="text" name="name" form="add-player" autocomplete="off"
+               placeholder="Someone new…" aria-label="New player's name">
+        <button class="month-tab" type="submit" form="add-player">Add player</button>
+      </div>
+      <p class="roster-status" aria-live="polite"
+         data-fascists="{{ fascists_by_size | tojson | forceescape }}"></p>
     </div>
   </div>
 
-  <div class="field">
-    <label>Who Played &amp; Their Role</label>
-    <div id="roster-picker">
-      {% include "partials/_roster_picker.html" %}
+  <div class="frow">
+    <span class="frow-label" id="gf-outcome">Outcome</span>
+    <div class="frow-body" role="radiogroup" aria-labelledby="gf-outcome">
+      {% for faction in ['Liberal', 'Fascist'] %}
+      <div class="outcome-line">
+        <span class="outcome-faction">{{ faction }} victory</span>
+        <div class="opts">
+          {% for key, wc in win_conditions.items() if wc.faction == faction %}
+          {{ ui.radio_chip('win_condition', key, wc.short, form.win_condition == key,
+                           faction_css[faction], title=wc.label, dot=true, required=true) }}
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    <p class="hint">Tick everyone who played, then set each role. Exactly one Hitler; 5–10 players total.</p>
   </div>
 
-  <div class="field">
-    <label for="notes">Notes (optional)</label>
-    <input class="input" type="text" id="notes" name="notes" placeholder="Memorable moments, blowout, clutch shot…">
+  <div class="frow">
+    <span class="frow-label">Policies<small>Optional</small></span>
+    <div class="frow-body">
+      {{ track('liberal_policies', 'Liberal', 'lib', liberal_track, form.liberal_policies) }}
+      {{ track('fascist_policies', 'Fascist', 'fas', fascist_track, form.fascist_policies) }}
+    </div>
+  </div>
+
+  <div class="frow">
+    <label class="frow-label" for="notes">Notes<small>Optional</small></label>
+    <div class="frow-body">
+      <input class="input" type="text" id="notes" name="notes" value="{{ form.notes }}"
+             placeholder="Memorable moments, blowout, clutch shot…">
+    </div>
   </div>
 
   <button class="btn block" type="submit">
@@ -47,11 +93,84 @@
   </button>
 </form>
 
-<form class="addplayer"
+{# Sends the new name plus the game form's picks, so the roster comes back
+   with everyone still ticked. #}
+<form id="add-player"
       hx-post="{{ url_for('admin.add_player') }}"
+      hx-include="#game-form"
       hx-target="#roster-picker"
       hx-swap="innerHTML"
-      hx-on::after-request="this.reset()">
-  <input class="input" type="text" name="name" placeholder="Add a new player…" autocomplete="off">
-  <button class="btn ghost" type="submit">Add</button>
-</form>
+      hx-on::after-request="this.reset()"></form>
+
+{# Live help while filling the form in; the server still validates. It lights
+   the matching day chip, counts the roster against the rulebook, and fills a
+   policy track when the game was won by filling it. htmx runs this again each
+   time the form is swapped in, binding to the fresh form. #}
+<script>
+  (function () {
+    var form = document.getElementById("game-form");
+    var date = form.elements.played_on;
+    var status = form.querySelector(".roster-status");
+    var fascistsFor = JSON.parse(status.dataset.fascists);
+    var sizes = Object.keys(fascistsFor).map(Number);
+    var min = Math.min.apply(null, sizes), max = Math.max.apply(null, sizes);
+
+    function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
+
+    function verdict(n, hitlers, fascists) {
+      if (n < min) return ["err", "Needs at least " + min + " players"];
+      if (n > max) return ["err", "At most " + max + " players"];
+      if (hitlers === 0) return ["err", "Pick the Hitler"];
+      if (hitlers > 1) return ["err", "Only one Hitler"];
+      if (fascists !== fascistsFor[n])
+        return ["warn", "The rules deal " + plural(fascistsFor[n], "Fascist") + " at " + n];
+      return ["ok", "Ready"];
+    }
+
+    function update() {
+      form.querySelectorAll("[data-date]").forEach(function (b) {
+        b.classList.toggle("on", b.dataset.date === date.value);
+      });
+
+      var n = 0, hitlers = 0, fascists = 0;
+      form.querySelectorAll(".pf-check:checked").forEach(function (tick) {
+        var role = form.elements["role_" + tick.value].value;
+        n++;
+        if (role === "Hitler") hitlers++;
+        else if (role === "Fascist") fascists++;
+      });
+
+      status.textContent = "";
+      if (!n) {
+        status.removeAttribute("data-state");
+        status.textContent = "Tap everyone who played, then set the Fascists and Hitler.";
+        return;
+      }
+      var v = verdict(n, hitlers, fascists);
+      var counts = document.createElement("span");
+      counts.textContent = [plural(n, "player"), hitlers + " Hitler",
+                            plural(fascists, "Fascist"),
+                            plural(n - hitlers - fascists, "Liberal")].join(" · ");
+      var note = document.createElement("span");
+      note.className = "rs-verdict";
+      note.textContent = v[1];
+      status.dataset.state = v[0];
+      status.append(counts, note);
+    }
+
+    form.addEventListener("change", function (e) {
+      // The two policy victories share their names with the tracks they
+      // fill: winning by Liberal policies means the Liberal track is full.
+      var track = e.target.name === "win_condition" && form.elements[e.target.value];
+      if (track && track.value === "") {
+        track[track.length - 1].checked = true;
+      }
+      update();
+    });
+    form.querySelectorAll("[data-date]").forEach(function (b) {
+      b.addEventListener("click", function () { date.value = b.dataset.date; update(); });
+    });
+    form.addEventListener("htmx:afterSettle", update);     // a player was added
+    update();
+  })();
+</script>

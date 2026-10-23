@@ -4,12 +4,12 @@ from datetime import date
 
 from flask import Blueprint, abort, make_response, render_template, request, url_for
 
+from ..domain import WIN_CONDITIONS
 from ..forms import game_form_context
 from ..pagination import PER_PAGE, Page, valid_page
-from ..domain import WIN_CONDITIONS
 from ..repository import all_players, count_games, count_player_games, get_player
 from ..search import (
-    FACTIONS, PLAYER_CHOICES, SIZES, date_presets, filter_args, parse_filters,
+    FACTIONS, SIZES, date_presets, filter_args, parse_filters,
     search_games, search_tally,
 )
 from ..stats.dashboard import awards, game_shape_stats, nights_context, pair_rows
@@ -131,7 +131,6 @@ def search():
         win_conditions=WIN_CONDITIONS,
         factions=FACTIONS,
         sizes=SIZES,
-        player_choices=PLAYER_CHOICES,
         presets=date_presets(date.today()),
         **search_context(request.args),
     )

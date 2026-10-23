@@ -18,6 +18,14 @@ ROLES = ["Liberal", "Fascist", "Hitler"]
 MIN_PLAYERS = 5
 MAX_PLAYERS = 10
 
+# Fascists dealt besides Hitler, by table size: the rulebook's setup table.
+# The record form only hints with it; house rules may differ.
+FASCISTS_BY_SIZE = {5: 1, 6: 1, 7: 2, 8: 2, 9: 3, 10: 3}
+
+# How long each policy track is; filling one wins the game.
+LIBERAL_TRACK = 5
+FASCIST_TRACK = 6
+
 
 def role_faction(role):
     """Hitler counts as a Fascist for win purposes."""

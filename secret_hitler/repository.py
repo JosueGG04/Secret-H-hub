@@ -16,6 +16,12 @@ def get_player(player_id):
         "SELECT * FROM players WHERE id=?", (player_id,)).fetchone()
 
 
+def find_player(name):
+    """Look a player up by name, ignoring case like the UNIQUE constraint does."""
+    return get_db().execute(
+        "SELECT * FROM players WHERE name = ?", (name,)).fetchone()
+
+
 def count_games():
     return get_db().execute("SELECT COUNT(*) c FROM games").fetchone()["c"]
 
