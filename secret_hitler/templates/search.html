@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Search — Secret Hitler Records{% endblock %}
+{% block body %}
+{% set role_short = {'any': 'Any', 'Liberal': 'Lib', 'Fascist': 'Fas', 'Hitler': 'Hitler'} %}
+{% set role_titles = {'any': 'Any role', 'Liberal': 'Liberal', 'Fascist': 'Fascist', 'Hitler': 'Hitler'} %}
+{% set role_css = {'any': 'any', 'Liberal': 'lib', 'Fascist': 'fas', 'Hitler': 'hitler'} %}
+{% set faction_css = {'Liberal': 'lib', 'Fascist': 'fas'} %}
+
+{# A radio dressed as a month chip. The input is hidden but focusable; the
+   chip shows its checked state. #}
+{% macro opt(name, value, label, checked, css='', title=none, dot=false) -%}
+<label class="opt {{ css }}"{% if title %} title="{{ title }}"{% endif %}>
+  <input type="radio" name="{{ name }}" value="{{ value }}"{% if checked %} checked{% endif %}>
+  <span class="month-tab">{% if dot %}<i class="dot" aria-hidden="true"></i>{% endif %}{{ label }}</span>
+</label>
+{%- endmacro %}
+
+<section class="section">
+  <div class="section-head">
+    <h2>Search the Chronicle</h2>
+    <a class="count" href="{{ url_for('public.search') }}">Clear filters</a>
+  </div>
+
+  {# Every control re-queries on change; the notes box waits for a pause in
+     typing. The results endpoint rewrites the URL bar back to /search?… #}
+  <form class="search-form"
+        hx-get="{{ url_for('public.search_results') }}"
+        hx-target="#search-results"
+        hx-swap="outerHTML"
+        hx-indicator="#search-results"
+        hx-trigger="change, input delay:300ms from:#s-q, submit">
+
+    <div class="sf-row">
+      <span class="sf-label" id="s-when">When</span>
+      <div class="sf-control" role="group" aria-labelledby="s-when">
+        <div class="sf-dates">
+          <input class="input" type="date" id="s-from" name="from" aria-label="Played from"
+                 value="{{ filters['from'] or '' }}">
+          <span class="sf-to">to</span>
+          <input class="input" type="date" id="s-to" name="to" aria-label="Played to"
+                 value="{{ filters['to'] or '' }}">
+        </div>
+        <div class="opts">
+          {% for p in presets %}
+          <button type="button" class="month-tab{{ ' on' if (filters['from'] or '') == p['from'] and not filters['to'] }}"
+                  data-from="{{ p['from'] }}">{{ p.label }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="sf-row">
+      <span class="sf-label" id="s-outcome">Outcome</span>
+      {# One radio group: who won on the first line, how on the second. A
+         condition implies its faction, so that faction's chip echoes it. #}
+      <div class="sf-control sf-outcome" role="radiogroup" aria-labelledby="s-outcome">
+        <div class="opts">
+          {{ opt('outcome', '', 'Any', not filters.outcome) }}
+          {% for f in factions %}
+          {{ opt('outcome', f, f ~ ' victory', filters.outcome == f,
+                 'fac ' ~ faction_css[f], dot=true) }}
+          {% endfor %}
+        </div>
+        <div class="opts">
+          {% for key, wc in win_conditions.items() %}
+          {{ opt('outcome', key, wc.short, filters.outcome == key,
+                 'cond ' ~ faction_css[wc.faction], title=wc.label ~ ' — ' ~ wc.faction ~ ' win', dot=true) }}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="sf-row">
+      <span class="sf-label" id="s-size">Table Size</span>
+      <div class="sf-control" role="radiogroup" aria-labelledby="s-size">
+        <div class="opts">
+          {{ opt('size', '', 'Any', not filters.size) }}
+          {% for n in sizes %}
+          {{ opt('size', n, n, filters.size == n, title=n ~ ' players') }}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="sf-row">
+      <label class="sf-label" for="s-q">Notes</label>
+      <div class="sf-control">
+        <input class="input sf-notes" type="search" id="s-q" name="q" autocomplete="off"
+               placeholder="Clutch shot, blowout…" value="{{ filters.q or '' }}">
+      </div>
+    </div>
+
+    {% if players %}
+    {# A chip per player: the tick says they were at the table, and only then do
+       the role buttons show (CSS :has, no script). The buttons always submit,
+       but parse_filters ignores them for an unticked player. #}
+    <div class="sf-row">
+      <span class="sf-label" id="s-players">At the Table</span>
+      <div class="sf-control">
+        <div class="pfilter-grid" role="group" aria-labelledby="s-players">
+          {% for p in players %}
+          {% set chosen = filters.players.get(p.id) %}
+          <div class="pfilter">
+            <label class="pf-who">
+              <input type="checkbox" class="pf-check" name="p{{ p.id }}" value="any"
+                     {%- if chosen %} checked{% endif %}>
+              <span class="pf-mark" aria-hidden="true"></span>
+              <span class="pf-name">{{ p.name }}</span>
+            </label>
+            <span class="pf-roles" role="radiogroup" aria-label="Role for {{ p.name }}">
+              {% for c in player_choices %}
+              <label class="pf-role {{ role_css[c] }}" title="{{ role_titles[c] }}">
+                <input type="radio" name="r{{ p.id }}" value="{{ c }}" aria-label="{{ role_titles[c] }}"
+                       {%- if (chosen or 'any') == c %} checked{% endif %}>
+                <span>{{ role_short[c] }}</span>
+              </label>
+              {% endfor %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        <p class="hint">Tap everyone who must have been at the table, then pin a role if it matters.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <noscript><button class="btn" type="submit">Search</button></noscript>
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Matches</h2>
+    <span class="count">Most recent first</span>
+  </div>
+  {% include "partials/_search_results.html" %}
+</section>
+
+{# Date quick picks: fill From, clear To, and let the form's change trigger
+   run the search. The chip lights whenever the boxes match it, however they
+   got there. Without script the date boxes still work on their own. #}
+<script>
+  (function () {
+    var form = document.querySelector(".search-form");
+    var from = form.elements.from, to = form.elements.to;
+    var presets = form.querySelectorAll("[data-from]");
+
+    function mark() {
+      presets.forEach(function (b) {
+        b.classList.toggle("on", !to.value && from.value === b.dataset.from);
+      });
+    }
+    presets.forEach(function (b) {
+      b.addEventListener("click", function () {
+        from.value = b.dataset.from;
+        to.value = "";
+        from.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    });
+    form.addEventListener("change", mark);
+  })();
+</script>
+
+{% endblock %}

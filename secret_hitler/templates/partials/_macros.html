@@ -28,3 +28,42 @@
 <p class="pager-note">{{ page.first_item }}–{{ page.last_item }} of {{ page.total }}</p>
 {% endif %}
 {%- endmacro %}
+
+
+{# One game in a list: date, outcome, roster. Shared by the Chronicle and the
+   match search. Macros don't see the template context, so is_admin is passed.
+   The search shows notes, since they're one of the things it matches on. #}
+{% macro game_card(g, is_admin, show_notes=False) -%}
+  <div class="game {{ 'win-lib' if g.winning_faction == 'Liberal' else 'win-fas' }}" id="game-{{ g.id }}">
+    <div class="game-top">
+      <div>
+        <div class="game-date">{{ g.played_on }} · {{ g.num_players }} players</div>
+        <div class="game-cond">{{ g.condition_label }}</div>
+      </div>
+      <div class="game-meta">
+        <span class="tag-win {{ 'lib' if g.winning_faction == 'Liberal' else 'fas' }}">
+          {{ g.winning_faction }} Victory
+        </span>
+        {% if is_admin %}
+        <button class="iconbtn"
+                hx-delete="{{ url_for('admin.delete_game', game_id=g.id) }}"
+                hx-target="#game-{{ g.id }}"
+                hx-swap="outerHTML swap:0.2s"
+                hx-confirm="Delete this game? Standings will update.">Delete</button>
+        {% endif %}
+      </div>
+    </div>
+    <div class="roster">
+      {% for r in g.roster %}
+      <span class="chip {{ 'won' if r.won else '' }}">
+        <span class="dot {{ 'hitler' if r.role == 'Hitler' else ('fas' if r.role == 'Fascist' else 'lib') }}"></span>
+        <span class="nm">{{ r.name }}</span>
+        <span class="pill {{ 'hitler' if r.role == 'Hitler' else ('fas' if r.role == 'Fascist' else 'lib') }}">{{ r.role }}</span>
+      </span>
+      {% endfor %}
+    </div>
+    {% if show_notes and g.notes %}
+    <p class="game-notes">{{ g.notes }}</p>
+    {% endif %}
+  </div>
+{%- endmacro %}

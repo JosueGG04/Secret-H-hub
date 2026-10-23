@@ -1,10 +1,17 @@
 """Read-only pages and the htmx fragments they refresh."""
 
-from flask import Blueprint, abort, render_template, request
+from datetime import date
+
+from flask import Blueprint, abort, make_response, render_template, request, url_for
 
 from ..forms import game_form_context
 from ..pagination import PER_PAGE, Page, valid_page
-from ..repository import count_games, count_player_games, get_player
+from ..domain import WIN_CONDITIONS
+from ..repository import all_players, count_games, count_player_games, get_player
+from ..search import (
+    FACTIONS, PLAYER_CHOICES, SIZES, date_presets, filter_args, parse_filters,
+    search_games, search_tally,
+)
 from ..stats.dashboard import awards, game_shape_stats, nights_context, pair_rows
 from ..stats.leaderboard import leaderboard_context, valid_month
 from ..stats.players import (
@@ -28,6 +35,23 @@ def history_context(player, page_number=1):
         "page": page,
         "player_id": player["id"],
         "player_name": player["name"],
+    }
+
+
+def search_context(args):
+    """One page of search results. The filters are re-derived from the query
+    string on every request, so the page and its fragment can't disagree."""
+    players = all_players()
+    filters = parse_filters(args, {p["id"] for p in players})
+    tally = search_tally(filters)
+    page = Page(valid_page(args.get("page")), tally["total"])
+    return {
+        "players": players,
+        "filters": filters,
+        "args": filter_args(filters),
+        "tally": tally,
+        "games": search_games(filters, PER_PAGE, page.offset),
+        "page": page,
     }
 
 
@@ -98,3 +122,29 @@ def dashboard():
 def dashboard_nights():
     return render_template("partials/_nights.html",
                            nights=nights_context(request.args.get("month")))
+
+
+@bp.route("/search")
+def search():
+    return render_template(
+        "search.html",
+        win_conditions=WIN_CONDITIONS,
+        factions=FACTIONS,
+        sizes=SIZES,
+        player_choices=PLAYER_CHOICES,
+        presets=date_presets(date.today()),
+        **search_context(request.args),
+    )
+
+
+@bp.route("/search/results")
+def search_results():
+    ctx = search_context(request.args)
+    resp = make_response(render_template("partials/_search_results.html", **ctx))
+    # Point the address bar at the full page, not this fragment, so a reload
+    # or a shared link lands on the same search. Replace rather than push:
+    # typing in the notes box shouldn't leave a history entry per keystroke.
+    page = ctx["page"].number
+    resp.headers["HX-Replace-Url"] = url_for(
+        "public.search", **ctx["args"], **({"page": page} if page > 1 else {}))
+    return resp

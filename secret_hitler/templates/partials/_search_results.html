@@ -1,0 +1,21 @@
+{% import "partials/_macros.html" as ui %}
+{# The form and the pager both swap this whole wrapper, so the tally above the
+   list always describes the list below it. #}
+<div id="search-results">
+
+{% if games %}
+  <p class="search-tally">
+    <b>{{ tally.total }}</b> match{{ '' if tally.total == 1 else 'es' }}
+    <span class="sep">◆</span> <span class="lib">{{ tally.lib }} Liberal</span>
+    · <span class="fas">{{ tally.fas }} Fascist</span>
+  </p>
+
+  {% for g in games %}
+  {{ ui.game_card(g, is_admin, show_notes=True) }}
+  {% endfor %}
+
+  {{ ui.pager(page, 'public.search_results', '#search-results', **args) }}
+{% else %}
+<p style="color:var(--ink-soft)">No games match these filters.</p>
+{% endif %}
+</div>

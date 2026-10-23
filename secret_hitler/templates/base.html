@@ -30,6 +30,9 @@
           <span class="sep">◆</span>
           <a href="{{ url_for('public.dashboard') }}"
              class="{{ 'on' if request.endpoint == 'public.dashboard' }}">Dashboard</a>
+          <span class="sep">◆</span>
+          <a href="{{ url_for('public.search') }}"
+             class="{{ 'on' if request.endpoint == 'public.search' }}">Search</a>
         </nav>
       </header>
       {% block body %}{% endblock %}

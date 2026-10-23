@@ -308,7 +308,7 @@ a:hover { color: var(--oxblood-2); }
   cursor: pointer;
 }
 .month-tab:hover { color: var(--oxblood); border-color: var(--oxblood); }
-.month-tab.on {
+.month-tab.on, .opt input:checked + .month-tab {
   background: var(--oxblood);
   border-color: var(--oxblood);
   color: var(--cream);
@@ -610,6 +610,166 @@ a:hover { color: var(--oxblood-2); }
   letter-spacing: 0.08em; font-size: 13px; }
 .notice.ok  { background: rgba(216,178,90,0.16); border: 1px solid var(--gold-2); color: var(--gold-2); }
 .notice.err { background: rgba(154,27,27,0.22); border: 1px solid var(--oxblood); color: #f3c9c9; }
+
+/* ---- Match search -------------------------------------------------------- */
+
+.search-form .hint { color: var(--ink-soft); }   /* .hint is tuned for the dark log panel */
+.section-head a.count:hover { color: var(--oxblood); }
+
+/* Form rows: a label column and a control column, stacked on phones. */
+.sf-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 8px 20px;
+  align-items: start;
+  padding: 16px 0;
+  border-top: 1px dashed rgba(198,164,90,0.6);
+}
+.sf-row:first-of-type { border-top: 0; padding-top: 0; }
+.sf-row:last-of-type { padding-bottom: 0; }
+.sf-label {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  color: var(--ink-soft);
+  padding-top: 8px;                 /* level with the first row of chips */
+}
+.sf-control { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+/* A grid, not a wrapping row, so on a phone both boxes shrink instead of "to"
+   being stranded beside the first one. */
+.sf-dates {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) auto minmax(0, 180px);
+  justify-content: start;           /* or the spare width stretches the "to" column */
+  align-items: center;
+  gap: 10px;
+}
+.sf-dates .input { padding: 7px 8px; font-size: 14px; }
+.sf-to {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.sf-notes { max-width: 460px; }
+
+/* Radio chips: a hidden radio wearing a .month-tab, so every pick in the form
+   looks like the month chips elsewhere in the app. */
+.opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.opt { position: relative; display: inline-flex; }
+.opt .month-tab {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-width: 40px;                  /* so the table-size digits aren't slivers */
+}
+.opt input:focus-visible + .month-tab,
+.search-form button.month-tab:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
+.opt .dot { width: 7px; height: 7px; flex: none; transform: rotate(45deg); }
+.opt.lib .dot { background: var(--liberal-fill); }
+.opt.fas .dot { background: var(--oxblood); }
+.opt.lib input:checked + .month-tab { background: var(--liberal-fill); border-color: var(--liberal-fill); }
+.opt input:checked + .month-tab .dot { background: var(--cream); }
+/* A chosen win condition implies its faction, so that faction's chip echoes it. */
+.sf-outcome:has(.cond.lib input:checked) .fac.lib .month-tab { color: var(--liberal-fill); border-color: var(--liberal-fill); }
+.sf-outcome:has(.cond.fas input:checked) .fac.fas .month-tab { color: var(--oxblood); border-color: var(--oxblood); }
+
+/* The list dims while a search is in flight (hx-indicator on the form). */
+#search-results { transition: opacity 0.15s; }
+#search-results.htmx-request { opacity: 0.5; }
+
+@media (max-width: 720px) {
+  .sf-row { grid-template-columns: 1fr; }
+  .sf-label { padding-top: 0; }
+  .opt .month-tab, .search-form button.month-tab { letter-spacing: 0.1em; padding: 6px 9px; }
+  .opt .month-tab { min-width: 34px; }      /* Any + 5…10 on one line */
+}
+
+/* Player chips. Ticking one reveals its role buttons; both inputs are hidden
+   but stay focusable, so the chip itself carries the focus ring. */
+.pfilter-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.pfilter {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid rgba(198,164,90,0.75);
+  background: var(--paper);
+  transition: border-color 0.12s, background 0.12s;
+}
+.pfilter:hover { border-color: var(--oxblood); }
+.pf-who {
+  display: flex; align-items: center; gap: 9px;
+  color: var(--ink);
+  font-size: 15px;
+  padding: 6px 12px 6px 11px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+.pf-check, .pf-role input, .opt input {
+  position: absolute;
+  opacity: 0;
+  width: 1px; height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+.pf-mark {
+  width: 8px; height: 8px;
+  transform: rotate(45deg);
+  border: 1.5px solid var(--gold);
+  transition: background 0.12s, border-color 0.12s;
+}
+.pf-roles { display: none; border-left: 1px solid rgba(198,164,90,0.75); }
+
+.pfilter:has(.pf-check:checked) {
+  border-color: var(--oxblood);
+  background: var(--cream);
+}
+.pfilter:has(.pf-check:checked) .pf-mark { background: var(--oxblood); border-color: var(--oxblood); }
+.pfilter:has(.pf-check:checked) .pf-name { font-weight: 600; }
+.pfilter:has(.pf-check:checked) .pf-roles { display: flex; }
+
+.pf-role { display: flex; position: relative; cursor: pointer; }
+.pf-role + .pf-role { border-left: 1px solid rgba(198,164,90,0.45); }
+.pf-role span {
+  display: flex; align-items: center;
+  padding: 0 9px;
+  font-family: var(--font-head);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  transition: background 0.12s, color 0.12s;
+}
+.pf-role:hover span { color: var(--oxblood); }
+.pf-role input:checked + span { color: var(--cream); background: var(--ink-soft); }
+.pf-role.lib input:checked + span { background: var(--liberal); }
+.pf-role.fas input:checked + span { background: var(--oxblood); }
+.pf-role.hitler input:checked + span { background: var(--ink); }
+
+.pf-who:has(:focus-visible), .pf-role input:focus-visible + span {
+  outline: 2px solid var(--gold-2);
+  outline-offset: -2px;
+}
+
+.search-tally {
+  font-family: var(--font-head);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+}
+.search-tally b { color: var(--ink); font-size: 15px; }
+.search-tally .sep { color: var(--gold); margin: 0 4px; }
+.search-tally .lib { color: var(--liberal-fill); }
+.search-tally .fas { color: var(--fascist); }
+
+.game-notes {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
 
 /* ---- Player page --------------------------------------------------------- */
 

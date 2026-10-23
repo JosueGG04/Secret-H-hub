@@ -35,12 +35,18 @@ def game_detail_rows(limit=None, offset=0):
         games = db.execute(sql).fetchall()
     else:
         games = db.execute(sql + " LIMIT ? OFFSET ?", (limit, offset)).fetchall()
+    return attach_rosters(games)
+
+
+def attach_rosters(games):
+    """Decorate game rows with their label and roster, in one extra query.
+    Shared by the Chronicle and the match search."""
     if not games:
         return []
 
     ids = [g["id"] for g in games]
     rosters = {}
-    for r in db.execute(
+    for r in get_db().execute(
         """SELECT gp.game_id, gp.role, gp.won, p.name, p.id AS player_id
            FROM game_players gp JOIN players p ON p.id = gp.player_id
            WHERE gp.game_id IN (%s)

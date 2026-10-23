@@ -1,11 +1,16 @@
 """Secret Hitler rules the rest of the app scores games against."""
 
-# Each win condition maps to the faction that wins and a human label.
+# Each win condition maps to the faction that wins, a human label, and a
+# shorter one for tight spots like the search chips.
 WIN_CONDITIONS = {
-    "liberal_policies":  {"faction": "Liberal", "label": "Five Liberal policies enacted"},
-    "hitler_executed":   {"faction": "Liberal", "label": "Hitler assassinated"},
-    "fascist_policies":  {"faction": "Fascist", "label": "Six Fascist policies enacted"},
-    "hitler_chancellor": {"faction": "Fascist", "label": "Hitler elected Chancellor"},
+    "liberal_policies":  {"faction": "Liberal", "label": "Five Liberal policies enacted",
+                          "short": "Five Liberal policies"},
+    "hitler_executed":   {"faction": "Liberal", "label": "Hitler assassinated",
+                          "short": "Hitler assassinated"},
+    "fascist_policies":  {"faction": "Fascist", "label": "Six Fascist policies enacted",
+                          "short": "Six Fascist policies"},
+    "hitler_chancellor": {"faction": "Fascist", "label": "Hitler elected Chancellor",
+                          "short": "Hitler elected Chancellor"},
 }
 
 ROLES = ["Liberal", "Fascist", "Hitler"]
